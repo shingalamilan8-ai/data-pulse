@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LexaAi — Intelligent Data Analysis</title>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+<!-- ─── CURSOR GLOW ─── -->
+<div class="cursor-glow" id="cursorGlow"></div>
+
+<!-- ─── NAVBAR ─── -->
+<nav class="navbar" id="navbar">
+  <div class="nav-brand" onclick="navigateTo('home')">
+    <span class="brand-icon"><i class="fas fa-brain"></i></span>
+    <span class="brand-text">Lexa<span class="accent">Ai</span></span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#" class="nav-link active" data-page="home">Home</a></li>
+    <li><a href="#" class="nav-link" data-page="dashboard">Dashboard</a></li>
+    <li><a href="#" class="nav-link" data-page="services">Services</a></li>
+    <li><a href="#" class="nav-link" data-page="consultancy">Consultancy</a></li>
+  </ul>
+  <button class="nav-cta" onclick="navigateTo('dashboard')">
+    <span>Launch App</span>
+    <i class="fas fa-arrow-right"></i>
+  </button>
+  <button class="hamburger" id="hamburger">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- ─── MOBILE MENU ─── -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#" class="mob-link" data-page="home">Home</a>
+  <a href="#" class="mob-link" data-page="dashboard">Dashboard</a>
+  <a href="#" class="mob-link" data-page="services">Services</a>
+  <a href="#" class="mob-link" data-page="consultancy">Consultancy</a>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE: HOME
+═══════════════════════════════════════════ -->
+<div class="page active" id="page-home">
+  <section class="hero">
+    <div class="hero-grid-bg"></div>
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        AI-Powered Analytics Platform
+      </div>
+      <h1 class="hero-title">
+        Turn Raw Data<br/>
+        Into <span class="gradient-text">Actionable</span><br/>
+        Insights.
+      </h1>
+      <p class="hero-sub">
+        Upload your CSV or Excel files and watch LexaAi automatically generate beautiful, interactive charts and deep analytical insights — in seconds, not hours.
+      </p>
+      <div class="hero-actions">
+        <button class="btn-primary" onclick="navigateTo('dashboard')">
+          <i class="fas fa-upload"></i> Upload & Analyze
+        </button>
+        <button class="btn-ghost" onclick="navigateTo('services')">
+          <i class="fas fa-play-circle"></i> See Services
+        </button>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><span class="stat-val">50K+</span><span class="stat-label">Datasets Analyzed</span></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><span class="stat-val">99.2%</span><span class="stat-label">Accuracy Rate</span></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><span class="stat-val">3s</span><span class="stat-label">Avg. Analysis Time</span></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="floating-card card-1">
+        <div class="mini-chart">
+          <div class="bar-wrap">
+            <div class="bar" style="height:45%"></div>
+            <div class="bar" style="height:70%"></div>
+            <div class="bar" style="height:55%"></div>
+            <div class="bar" style="height:90%"></div>
+            <div class="bar" style="height:65%"></div>
+            <div class="bar" style="height:80%"></div>
+          </div>
+        </div>
+        <p>Revenue Trend</p>
+        <span class="mini-tag up"><i class="fas fa-arrow-up"></i> 24.5%</span>
+      </div>
+      <div class="floating-card card-2">
+        <div class="donut-wrap">
+          <svg viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="30" fill="none" stroke="rgba(0,255,200,.15)" stroke-width="12"/>
+            <circle cx="40" cy="40" r="30" fill="none" stroke="#00ffc8" stroke-width="12" stroke-dasharray="94 188" stroke-linecap="round" transform="rotate(-90 40 40)"/>
+          </svg>
+          <span class="donut-pct">67%</span>
+        </div>
+        <p>Goal Reached</p>
+      </div>
+      <div class="floating-card card-3">
+        <i class="fas fa-bolt"></i>
+        <div>
+          <p class="card3-title">Auto-Detected</p>
+          <p class="card3-sub">6 chart types ready</p>
+        </div>
+      </div>
+      <div class="hero-glow-orb"></div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="section how-it-works">
+    <div class="section-label">Process</div>
+    <h2 class="section-title">How LexaAi Works</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-icon"><i class="fas fa-file-upload"></i></div>
+        <h3>Upload Your File</h3>
+        <p>Drag & drop or browse your CSV or Excel file. We accept .csv, .xlsx, and .xls formats.</p>
+      </div>
+      <div class="step-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-icon"><i class="fas fa-brain"></i></div>
+        <h3>AI Processes Data</h3>
+        <p>Gemini AI scans column types, detects relationships, and selects the most meaningful chart configurations.</p>
+      </div>
+      <div class="step-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-icon"><i class="fas fa-chart-bar"></i></div>
+        <h3>Explore Insights</h3>
+        <p>Interact with generated charts, ask questions in chat, export PDF reports, and download clean data.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="section features">
+    <div class="section-label">Features</div>
+    <h2 class="section-title">Everything You Need</h2>
+    <div class="features-grid">
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fas fa-magic"></i></div>
+        <h3>Auto Chart Detection</h3>
+        <p>Intelligently selects bar, line, pie, scatter, heatmap, and more based on your data structure.</p>
+      </div>
+      <div class="feat-card feat-large">
+        <div class="feat-icon"><i class="fas fa-layer-group"></i></div>
+        <h3>Multi-Format Support</h3>
+        <p>Works seamlessly with CSV, XLSX, XLS. Handles messy headers, mixed types, and large datasets.</p>
+        <div class="feat-badges">
+          <span>.csv</span><span>.xlsx</span><span>.xls</span>
+        </div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fas fa-file-pdf"></i></div>
+        <h3>PDF Export</h3>
+        <p>Download professional AI-generated insight reports as beautifully formatted PDFs in one click.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fas fa-download"></i></div>
+        <h3>CSV Download</h3>
+        <p>Export your cleaned and processed dataset as CSV for use in other tools.</p>
+      </div>
+      <div class="feat-card feat-large">
+        <div class="feat-icon"><i class="fas fa-comments"></i></div>
+        <h3>AI Chat Analysis</h3>
+        <p>Ask natural language questions about your data. Get column summaries, outlier detection, trend explanations, and custom analysis powered by Google Gemini.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fas fa-shield-alt"></i></div>
+        <h3>Secure & Private</h3>
+        <p>Your data lives only in your session on your machine. Nothing is stored permanently.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-strip">
+    <div class="cta-content">
+      <h2>Ready to Unlock Your Data?</h2>
+      <p>No signup required. Upload your first file and get insights instantly.</p>
+      <button class="btn-primary large" onclick="navigateTo('dashboard')">
+        <i class="fas fa-rocket"></i> Get Started Free
+      </button>
+    </div>
+    <div class="cta-bg-decoration"></div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-brand">
+      <span class="brand-icon"><i class="fas fa-brain"></i></span>
+      <span class="brand-text">Lexa<span class="accent">Ai</span></span>
+    </div>
+    <p class="footer-copy">© 2026 LexaAi. Built for analysts, by analysts.</p>
+    <div class="footer-links">
+      <a href="#">Privacy</a><a href="#">Terms</a><a href="#">Contact</a>
+    </div>
+  </footer>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     PAGE: DASHBOARD
+═══════════════════════════════════════════ -->
+<div class="page" id="page-dashboard">
+  <div class="dashboard-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span class="brand-text small">Lexa<span class="accent">Ai</span></span>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="#" class="sidebar-item active" data-dash="upload">
+          <i class="fas fa-upload"></i> <span>Upload Data</span>
+        </a>
+        <a href="#" class="sidebar-item" data-dash="charts">
+          <i class="fas fa-chart-bar"></i> <span>Charts</span>
+        </a>
+        <a href="#" class="sidebar-item" data-dash="insights">
+          <i class="fas fa-lightbulb"></i> <span>AI Insights</span>
+        </a>
+        <a href="#" class="sidebar-item" data-dash="analysis">
+          <i class="fas fa-comments"></i> <span>AI Chat</span>
+        </a>
+        <a href="#" class="sidebar-item" data-dash="summary">
+          <i class="fas fa-table"></i> <span>Data Summary</span>
+        </a>
+        <a href="#" class="sidebar-item" data-dash="export">
+          <i class="fas fa-download"></i> <span>Export</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="btn-ghost small" onclick="navigateTo('home')">
+          <i class="fas fa-home"></i> Back Home
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="dash-main">
+      <div class="dash-topbar">
+        <div>
+          <h2 class="dash-title" id="dashTitle">Upload Your Dataset</h2>
+          <p class="dash-sub" id="dashSub">CSV or Excel — we'll handle the rest</p>
+        </div>
+        <div class="topbar-actions">
+          <div class="status-pill" id="statusPill">
+            <span class="status-dot idle"></span> No file loaded
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL: UPLOAD -->
+      <div class="dash-panel active" id="panel-upload">
+        <div class="upload-zone" id="uploadZone">
+          <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+          <h3>Drag & Drop your file here</h3>
+          <p>Supports CSV, XLSX, XLS files</p>
+          <label class="btn-primary upload-label" for="fileInput">
+            <i class="fas fa-folder-open"></i> Browse Files
+          </label>
+          <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" hidden/>
+        </div>
+        <div class="upload-info hidden" id="uploadInfo">
+          <div class="file-card">
+            <div class="file-icon"><i class="fas fa-file-csv"></i></div>
+            <div class="file-details">
+              <p class="file-name" id="fileName">—</p>
+              <p class="file-meta" id="fileMeta">—</p>
+            </div>
+            <div class="file-status"><i class="fas fa-check-circle"></i> Ready</div>
+          </div>
+          <button class="btn-primary large w100" id="analyzeBtn">
+            <i class="fas fa-magic"></i> Generate Analysis & Charts
+          </button>
+        </div>
+        <div class="upload-tips">
+          <div class="tip"><i class="fas fa-info-circle"></i> Column headers should be in the first row</div>
+          <div class="tip"><i class="fas fa-info-circle"></i> Numeric columns will be used to generate quantitative charts</div>
+          <div class="tip"><i class="fas fa-info-circle"></i> Date columns will enable time-series analysis</div>
+        </div>
+      </div>
+
+      <!-- PANEL: CHARTS -->
+      <div class="dash-panel" id="panel-charts">
+        <div class="no-data-msg" id="noChartMsg">
+          <i class="fas fa-chart-bar"></i>
+          <p>No charts yet. Upload a file and click Generate.</p>
+          <button class="btn-primary" onclick="switchDash('upload')">Upload File</button>
+        </div>
+        <div class="charts-loaded hidden" id="chartsLoaded">
+          <div class="chart-controls">
+            <div class="chart-filter-row">
+              <label>Filter:</label>
+              <select id="chartTypeFilter" class="dash-select">
+                <option value="all">All Charts</option>
+                <option value="bar">Bar</option>
+                <option value="line">Line</option>
+                <option value="pie">Pie/Donut</option>
+                <option value="scatter">Scatter</option>
+              </select>
+            </div>
+            <div class="chart-count" id="chartCount">0 charts</div>
+            <button class="topbar-btn" id="regenBtn" onclick="regenerateCharts()">
+              <i class="fas fa-redo"></i> Regenerate
+            </button>
+          </div>
+          <div class="charts-grid" id="chartsGrid"></div>
+
+          <!-- Generated code (collapsible) -->
+          <div class="code-section">
+            <div class="code-header" onclick="toggleCode()">
+              <span><i class="fas fa-code"></i> View Generated Code</span>
+              <i class="fas fa-chevron-down" id="codeChevron"></i>
+            </div>
+            <pre class="code-block hidden" id="codeBlock"><code id="codeContent"></code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL: AI INSIGHTS -->
+      <div class="dash-panel" id="panel-insights">
+        <div class="no-data-msg" id="noInsightMsg">
+          <i class="fas fa-lightbulb"></i>
+          <p>Generate charts first to unlock AI insights.</p>
+          <button class="btn-primary" onclick="switchDash('upload')">Upload File</button>
+        </div>
+        <div class="insights-loaded hidden" id="insightsLoaded">
+          <div class="insights-actions">
+            <button class="btn-primary" id="genInsightsBtn" onclick="generateInsights()">
+              <i class="fas fa-magic"></i> Generate Insights
+            </button>
+            <button class="btn-ghost" onclick="switchDash('export')">
+              <i class="fas fa-file-pdf"></i> Export as PDF
+            </button>
+          </div>
+          <div class="insight-content" id="insightContent">
+            <div class="insight-placeholder">
+              <i class="fas fa-lightbulb"></i>
+              <p>Click "Generate Insights" to get AI-powered analysis of your data and charts.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL: AI CHAT -->
+      <div class="dash-panel" id="panel-analysis">
+        <div class="chat-container">
+          <div class="chat-messages" id="chatMessages">
+            <div class="chat-welcome">
+              <div class="chat-avatar bot"><i class="fas fa-robot"></i></div>
+              <div class="chat-bubble bot">
+                <p>👋 Hi! I'm your <strong>Data Analysis AI</strong>. Upload a dataset and ask me anything about it!</p>
+                <p style="margin-top:8px;opacity:.7;font-size:.85rem;">Try: "Summarize the data", "Find outliers", "What trends do you see?"</p>
+              </div>
+            </div>
+          </div>
+          <div class="chat-input-row">
+            <div class="chat-input-wrap">
+              <input type="text" id="chatInput" class="chat-input" placeholder="Ask about your data…"/>
+              <button class="chat-send" id="chatSend" onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i>
+              </button>
+            </div>
+            <div class="chat-suggestions" id="chatSuggestions">
+              <button class="suggestion-chip" onclick="sendSuggestion('Summarize the dataset')">Summarize</button>
+              <button class="suggestion-chip" onclick="sendSuggestion('Which columns are numeric?')">Numeric columns</button>
+              <button class="suggestion-chip" onclick="sendSuggestion('Find any outliers in the data')">Find outliers</button>
+              <button class="suggestion-chip" onclick="sendSuggestion('What trends are visible?')">Trends</button>
+              <button class="suggestion-chip" id="suggestAiBtn" onclick="loadAISuggestions()">
+                <i class="fas fa-magic"></i> AI Questions
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL: DATA SUMMARY -->
+      <div class="dash-panel" id="panel-summary">
+        <div class="no-data-msg" id="noSummaryMsg">
+          <i class="fas fa-table"></i>
+          <p>Upload a dataset to view its summary.</p>
+          <button class="btn-primary" onclick="switchDash('upload')">Upload File</button>
+        </div>
+        <div class="summary-loaded hidden" id="summaryLoaded">
+          <div class="summary-cards" id="summaryCards"></div>
+          <div class="data-preview-wrap">
+            <h3 class="preview-title">Data Preview <span id="rowCount"></span></h3>
+            <div class="table-scroll">
+              <table class="data-table" id="dataTable"></table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL: EXPORT -->
+      <div class="dash-panel" id="panel-export">
+        <div class="export-grid">
+          <div class="export-card">
+            <div class="export-icon"><i class="fas fa-file-pdf"></i></div>
+            <h3>Insights Report</h3>
+            <p>Download AI-generated analysis as a professional PDF report.</p>
+            <button class="btn-primary w100" id="exportPdfBtn" onclick="exportPDF()">
+              <i class="fas fa-download"></i> Download PDF
+            </button>
+          </div>
+          <div class="export-card">
+            <div class="export-icon"><i class="fas fa-file-csv"></i></div>
+            <h3>Cleaned Dataset</h3>
+            <p>Download your dataset as a clean CSV file for use in other tools.</p>
+            <button class="btn-primary w100" id="exportCsvBtn" onclick="exportCSV()">
+              <i class="fas fa-download"></i> Download CSV
+            </button>
+          </div>
+          <div class="export-card">
+            <div class="export-icon"><i class="fas fa-save"></i></div>
+            <h3>Save Dashboard</h3>
+            <p>Save your current charts to a local JSON file so you can reload them later.</p>
+            <button class="btn-primary w100" onclick="saveDashboard()">
+              <i class="fas fa-cloud-upload-alt"></i> Save Charts
+            </button>
+          </div>
+          <div class="export-card">
+            <div class="export-icon"><i class="fas fa-folder-open"></i></div>
+            <h3>Load Dashboard</h3>
+            <p>Restore previously saved charts from dashboard.json.</p>
+            <button class="btn-primary w100" onclick="loadDashboard()">
+              <i class="fas fa-cloud-download-alt"></i> Load Charts
+            </button>
+          </div>
+        </div>
+        <!-- Session summary -->
+        <div class="session-summary" id="sessionSummary" style="display:none">
+          <div class="section-label" style="margin-top:2rem">Session Summary</div>
+          <div class="summary-cards" id="exportSummaryCards"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     PAGE: SERVICES
+═══════════════════════════════════════════ -->
+<div class="page" id="page-services">
+  <div class="page-hero short">
+    <div class="hero-grid-bg"></div>
+    <div class="page-hero-content">
+      <div class="hero-badge">What We Offer</div>
+      <h1>Our <span class="gradient-text">Services</span></h1>
+      <p>Two powerful ways to work with your data — self-serve analytics or expert-guided consulting.</p>
+    </div>
+  </div>
+  <section class="section services-section">
+    <div class="services-cards">
+      <div class="service-card primary-service">
+        <div class="service-glow"></div>
+        <div class="service-icon-wrap"><i class="fas fa-chart-line"></i></div>
+        <div class="service-badge">Self-Serve</div>
+        <h2>Data Analysis</h2>
+        <p class="service-desc">Upload your files and let our AI engine do the heavy lifting. Get instant visualizations, statistical summaries, and natural language insights — no coding required.</p>
+        <ul class="service-features">
+          <li><i class="fas fa-check"></i> Auto-generated charts (bar, line, pie, scatter, heatmap)</li>
+          <li><i class="fas fa-check"></i> AI chat interface to ask questions about your data</li>
+          <li><i class="fas fa-check"></i> Column profiling & outlier detection</li>
+          <li><i class="fas fa-check"></i> Export PDF reports & clean CSVs</li>
+          <li><i class="fas fa-check"></i> Supports CSV & Excel formats</li>
+        </ul>
+        <button class="btn-primary" onclick="navigateTo('dashboard')">
+          <i class="fas fa-rocket"></i> Start Analyzing
+        </button>
+      </div>
+      <div class="service-card secondary-service">
+        <div class="service-icon-wrap"><i class="fas fa-users"></i></div>
+        <div class="service-badge alt">Expert-Led</div>
+        <h2>Data Consultancy</h2>
+        <p class="service-desc">Connect with certified data scientists and business analysts who will dive deep into your data, uncover strategic insights, and guide your organization's decisions.</p>
+        <ul class="service-features">
+          <li><i class="fas fa-check"></i> 1-on-1 sessions with domain experts</li>
+          <li><i class="fas fa-check"></i> Custom dashboards & reporting pipelines</li>
+          <li><i class="fas fa-check"></i> Data strategy & roadmap planning</li>
+          <li><i class="fas fa-check"></i> Machine learning model integration</li>
+          <li><i class="fas fa-check"></i> Ongoing advisory retainer options</li>
+        </ul>
+        <button class="btn-primary alt" onclick="navigateTo('consultancy')">
+          <i class="fas fa-calendar"></i> Meet Our Experts
+        </button>
+      </div>
+    </div>
+  </section>
+  <section class="section comparison-section">
+    <div class="section-label">Compare</div>
+    <h2 class="section-title">Which Plan Fits You?</h2>
+    <div class="comp-table-wrap">
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th class="highlight-col"><i class="fas fa-chart-bar"></i> Data Analysis</th>
+            <th><i class="fas fa-users"></i> Consultancy</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>File Upload & Processing</td><td class="highlight-col"><i class="fas fa-check yes"></i></td><td><i class="fas fa-check yes"></i></td></tr>
+          <tr><td>Auto Chart Generation</td><td class="highlight-col"><i class="fas fa-check yes"></i></td><td><i class="fas fa-check yes"></i></td></tr>
+          <tr><td>AI Chat Interface</td><td class="highlight-col"><i class="fas fa-check yes"></i></td><td><i class="fas fa-check yes"></i></td></tr>
+          <tr><td>Human Expert Review</td><td class="highlight-col"><i class="fas fa-times no"></i></td><td><i class="fas fa-check yes"></i></td></tr>
+          <tr><td>Custom Strategy Report</td><td class="highlight-col"><i class="fas fa-times no"></i></td><td><i class="fas fa-check yes"></i></td></tr>
+          <tr><td>Price</td><td class="highlight-col">Free</td><td>Contact for Quote</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <footer class="footer">
+    <div class="footer-brand"><span class="brand-icon"><i class="fas fa-brain"></i></span><span class="brand-text">Lexa<span class="accent">Ai</span></span></div>
+    <p class="footer-copy">© 2026 LexaAi. Built for analysts, by analysts.</p>
+  </footer>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     PAGE: CONSULTANCY
+═══════════════════════════════════════════ -->
+<div class="page" id="page-consultancy">
+  <div class="page-hero short">
+    <div class="hero-grid-bg"></div>
+    <div class="page-hero-content">
+      <div class="hero-badge">Expert Network</div>
+      <h1>Meet Our <span class="gradient-text">Consultants</span></h1>
+      <p>World-class data professionals ready to transform your business with data-driven insights.</p>
+    </div>
+  </div>
+  <section class="section consultants-section">
+    <div class="section-label">Our Team</div>
+    <h2 class="section-title">Connect With an Expert</h2>
+    <div class="consultants-grid">
+      <div class="consultant-card"><div class="consultant-bg"></div><div class="consultant-avatar"><div class="avatar-placeholder" style="--hue:200"><span>AR</span></div><div class="availability-badge available">Available</div></div><div class="consultant-info"><h3>Arjun Rao</h3><p class="consultant-title">Senior Data Scientist</p><p class="consultant-company"><i class="fas fa-building"></i> Ex-Google, Ex-Flipkart</p><div class="consultant-tags"><span>Machine Learning</span><span>Python</span><span>NLP</span></div><p class="consultant-bio">8+ years building ML pipelines and data products at scale. Specializes in e-commerce analytics and recommendation systems.</p><div class="consultant-stats"><div class="cstat"><span class="cstat-val">120+</span><span class="cstat-lbl">Clients</span></div><div class="cstat"><span class="cstat-val">4.9★</span><span class="cstat-lbl">Rating</span></div><div class="cstat"><span class="cstat-val">8yr</span><span class="cstat-lbl">Exp.</span></div></div><button class="btn-connect" onclick="openConsultModal('Arjun Rao','Senior Data Scientist')"><i class="fas fa-calendar-plus"></i> Connect</button></div></div>
+      <div class="consultant-card"><div class="consultant-bg"></div><div class="consultant-avatar"><div class="avatar-placeholder" style="--hue:320"><span>PM</span></div><div class="availability-badge available">Available</div></div><div class="consultant-info"><h3>Priya Mehta</h3><p class="consultant-title">Business Intelligence Lead</p><p class="consultant-company"><i class="fas fa-building"></i> Ex-McKinsey, Deloitte</p><div class="consultant-tags"><span>BI Strategy</span><span>Tableau</span><span>Power BI</span></div><p class="consultant-bio">Helped 50+ enterprises build BI frameworks. Transforms complex data into clear strategic narratives for C-suite decision-making.</p><div class="consultant-stats"><div class="cstat"><span class="cstat-val">85+</span><span class="cstat-lbl">Clients</span></div><div class="cstat"><span class="cstat-val">4.8★</span><span class="cstat-lbl">Rating</span></div><div class="cstat"><span class="cstat-val">11yr</span><span class="cstat-lbl">Exp.</span></div></div><button class="btn-connect" onclick="openConsultModal('Priya Mehta','Business Intelligence Lead')"><i class="fas fa-calendar-plus"></i> Connect</button></div></div>
+      <div class="consultant-card"><div class="consultant-bg"></div><div class="consultant-avatar"><div class="avatar-placeholder" style="--hue:45"><span>RK</span></div><div class="availability-badge busy">Busy</div></div><div class="consultant-info"><h3>Rahul Khanna</h3><p class="consultant-title">Data Engineering Architect</p><p class="consultant-company"><i class="fas fa-building"></i> Ex-Amazon, Swiggy</p><div class="consultant-tags"><span>AWS</span><span>Spark</span><span>Data Lakes</span></div><p class="consultant-bio">Designs large-scale data infrastructure for startups and enterprises. Expert in real-time streaming, ETL pipelines and cloud migration.</p><div class="consultant-stats"><div class="cstat"><span class="cstat-val">200+</span><span class="cstat-lbl">Clients</span></div><div class="cstat"><span class="cstat-val">4.95★</span><span class="cstat-lbl">Rating</span></div><div class="cstat"><span class="cstat-val">12yr</span><span class="cstat-lbl">Exp.</span></div></div><button class="btn-connect" onclick="openConsultModal('Rahul Khanna','Data Engineering Architect')"><i class="fas fa-calendar-plus"></i> Connect</button></div></div>
+      <div class="consultant-card"><div class="consultant-bg"></div><div class="consultant-avatar"><div class="avatar-placeholder" style="--hue:140"><span>SJ</span></div><div class="availability-badge available">Available</div></div><div class="consultant-info"><h3>Sneha Joshi</h3><p class="consultant-title">AI & Predictive Analytics Lead</p><p class="consultant-company"><i class="fas fa-building"></i> Ex-Microsoft Research</p><div class="consultant-tags"><span>Deep Learning</span><span>Forecasting</span><span>R</span></div><p class="consultant-bio">Published researcher with focus on time-series forecasting and demand prediction. Works closely with retail and fintech sectors.</p><div class="consultant-stats"><div class="cstat"><span class="cstat-val">60+</span><span class="cstat-lbl">Clients</span></div><div class="cstat"><span class="cstat-val">4.87★</span><span class="cstat-lbl">Rating</span></div><div class="cstat"><span class="cstat-val">7yr</span><span class="cstat-lbl">Exp.</span></div></div><button class="btn-connect" onclick="openConsultModal('Sneha Joshi','AI & Predictive Analytics Lead')"><i class="fas fa-calendar-plus"></i> Connect</button></div></div>
+      <div class="consultant-card"><div class="consultant-bg"></div><div class="consultant-avatar"><div class="avatar-placeholder" style="--hue:270"><span>VN</span></div><div class="availability-badge available">Available</div></div><div class="consultant-info"><h3>Vikram Nair</h3><p class="consultant-title">Financial Data Analyst</p><p class="consultant-company"><i class="fas fa-building"></i> Ex-Goldman Sachs, Zerodha</p><div class="consultant-tags"><span>Finance Analytics</span><span>Risk Modeling</span><span>SQL</span></div><p class="consultant-bio">Specialized in quantitative finance, risk dashboards, and trading analytics. Converts complex financial data into clear reports for investors.</p><div class="consultant-stats"><div class="cstat"><span class="cstat-val">95+</span><span class="cstat-lbl">Clients</span></div><div class="cstat"><span class="cstat-val">4.91★</span><span class="cstat-lbl">Rating</span></div><div class="cstat"><span class="cstat-val">9yr</span><span class="cstat-lbl">Exp.</span></div></div><button class="btn-connect" onclick="openConsultModal('Vikram Nair','Financial Data Analyst')"><i class="fas fa-calendar-plus"></i> Connect</button></div></div>
+    </div>
+  </section>
+  <section class="section why-consult">
+    <div class="section-label">Why Us</div>
+    <h2 class="section-title">Why Choose Our Consultants?</h2>
+    <div class="why-grid">
+      <div class="why-item"><i class="fas fa-medal"></i><h3>Verified Experts</h3><p>Every consultant has been vetted and verified with real-world project track records.</p></div>
+      <div class="why-item"><i class="fas fa-clock"></i><h3>Fast Response</h3><p>Get matched and receive a meeting confirmation within 24 hours of submitting your request.</p></div>
+      <div class="why-item"><i class="fas fa-lock"></i><h3>NDA Protected</h3><p>All engagements are fully NDA-protected. Your data and business insights stay confidential.</p></div>
+      <div class="why-item"><i class="fas fa-redo"></i><h3>Satisfaction Guarantee</h3><p>Not happy? We'll rematch you with another expert or offer a full refund — no questions asked.</p></div>
+    </div>
+  </section>
+  <footer class="footer">
+    <div class="footer-brand"><span class="brand-icon"><i class="fas fa-brain"></i></span><span class="brand-text">Lexa<span class="accent">Ai</span></span></div>
+    <p class="footer-copy">© 2026 LexaAi. Built for analysts, by analysts.</p>
+  </footer>
+</div>
+
+
+<!-- ─── CONSULTANT MODAL ─── -->
+<div class="modal-overlay" id="consultModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeConsultModal()"><i class="fas fa-times"></i></button>
+    <div class="modal-header">
+      <div class="modal-icon"><i class="fas fa-calendar-plus"></i></div>
+      <div><h3 id="modalConsultName">Book a Session</h3><p id="modalConsultTitle">Expert Consultation</p></div>
+    </div>
+    <form class="modal-form" id="consultForm" onsubmit="submitConsult(event)">
+      <div class="form-row">
+        <div class="form-group"><label>Your Full Name *</label><input type="text" placeholder="e.g. Ravi Sharma" required/></div>
+        <div class="form-group"><label>Email Address *</label><input type="email" placeholder="ravi@company.com" required/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Phone Number</label><input type="tel" placeholder="+91 98765 43210"/></div>
+        <div class="form-group"><label>Company / Organization</label><input type="text" placeholder="Your company name"/></div>
+      </div>
+      <div class="form-group">
+        <label>What do you need help with? *</label>
+        <select required>
+          <option value="">Select a topic…</option>
+          <option>Data Analysis & Visualization</option>
+          <option>Machine Learning / AI</option>
+          <option>Business Intelligence</option>
+          <option>Data Engineering / Infrastructure</option>
+          <option>Financial Analytics</option>
+          <option>Data Strategy & Roadmap</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Preferred Date & Time</label><input type="datetime-local"/></div>
+      <div class="form-group"><label>Brief Description</label><textarea rows="3" placeholder="Tell us about your data, goals, and challenges…"></textarea></div>
+      <button type="submit" class="btn-primary w100 large"><i class="fas fa-paper-plane"></i> Submit Request</button>
+    </form>
+  </div>
+</div>
+
+<!-- ─── TOAST ─── -->
+<div class="toast-success" id="toastSuccess">
+  <div class="toast-inner">
+    <i class="fas fa-check-circle"></i>
+    <div><strong id="toastTitle">Success!</strong><p id="toastMsg">Operation completed.</p></div>
+    <button onclick="closeToast()"><i class="fas fa-times"></i></button>
+  </div>
+</div>
+
+<!-- ─── LOADING OVERLAY ─── -->
+<div class="loading-overlay hidden" id="loadingOverlay">
+  <div class="loader-content">
+    <div class="loader-rings"><div></div><div></div><div></div></div>
+    <p id="loaderText">Analyzing your data…</p>
+  </div>
+</div>
+
+<!-- Plotly for rendering AI charts -->
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>
