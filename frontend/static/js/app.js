@@ -65,7 +65,8 @@ var PANEL_TITLES = {
   insights: { title: 'AI Insights',          sub: 'Deep analysis powered by Gemini'      },
   analysis: { title: 'AI Data Chat',         sub: 'Ask anything about your dataset'      },
   summary:  { title: 'Data Summary',         sub: 'Column profiles and data preview'     },
-  export:   { title: 'Export',               sub: 'Download reports, CSV, and dashboards'}
+  export:   { title: 'Export',               sub: 'Download reports, CSV, and dashboards'},
+  'resume-analysis': { title: 'Resume Analyzer', sub: 'Upload and analyze multiple resumes' }
 };
 
 function switchDash(panelId) {

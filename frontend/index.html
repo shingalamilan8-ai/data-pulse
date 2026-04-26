@@ -24,6 +24,7 @@
     <li><a href="#" class="nav-link" data-page="dashboard">Dashboard</a></li>
     <li><a href="#" class="nav-link" data-page="services">Services</a></li>
     <li><a href="#" class="nav-link" data-page="consultancy">Consultancy</a></li>
+    <li><a href="#" class="nav-link" data-page="resume">Resume Analyzer</a></li>
   </ul>
   <button class="nav-cta" onclick="navigateTo('dashboard')">
     <span>Launch App</span>
@@ -40,6 +41,7 @@
   <a href="#" class="mob-link" data-page="dashboard">Dashboard</a>
   <a href="#" class="mob-link" data-page="services">Services</a>
   <a href="#" class="mob-link" data-page="consultancy">Consultancy</a>
+  <a href="#" class="mob-link" data-page="resume">Resume Analyzer</a>
 </div>
 
 <!-- ═══════════════════════════════════════════
@@ -236,6 +238,9 @@
         </a>
         <a href="#" class="sidebar-item" data-dash="export">
           <i class="fas fa-download"></i> <span>Export</span>
+        </a>
+        <a href="#" class="sidebar-item" data-dash="resume-analysis">
+          <i class="fas fa-file-resume"></i> <span>Resume Analyzer</span>
         </a>
       </nav>
       <div class="sidebar-footer">
@@ -445,6 +450,76 @@
         </div>
       </div>
 
+      <!-- PANEL: RESUME ANALYSIS -->
+      <div class="dash-panel" id="panel-resume-analysis">
+        <div class="resume-panel">
+          <div class="resume-header">
+            <h3>Resume Analyzer</h3>
+            <p>Upload multiple resumes and automatically calculate ATS scores</p>
+          </div>
+
+          <!-- Skills Configuration -->
+          <div class="resume-section">
+            <h4 class="resume-section-title">Required Skills</h4>
+            <div class="skills-input-wrap">
+              <input type="text" id="skillInput" class="skill-input" placeholder="Type a skill..."/>
+              <button class="btn-primary" id="addSkillBtn" onclick="addSkill()">
+                <i class="fas fa-plus"></i> Add Skill
+              </button>
+            </div>
+            <div class="skills-list" id="skillsList"></div>
+          </div>
+
+          <!-- Resume Upload -->
+          <div class="resume-section">
+            <h4 class="resume-section-title">Upload Resumes</h4>
+            <div class="resume-upload-zone" id="resumeUploadZone">
+              <div class="upload-icon"><i class="fas fa-file-upload"></i></div>
+              <h3>Drag resumes here or click to browse</h3>
+              <p>Supports PDF and DOCX formats (max 10 files)</p>
+              <label class="btn-primary upload-label" for="resumeFileInput">
+                <i class="fas fa-folder-open"></i> Select Files
+              </label>
+              <input type="file" id="resumeFileInput" multiple accept=".pdf,.docx,.doc" hidden/>
+            </div>
+            <div class="uploaded-resumes-list" id="uploadedResumesList" style="display:none">
+              <h4>Ready to Analyze</h4>
+              <div id="resumeFilesPreview"></div>
+              <button class="btn-primary large w100" id="analyzeResumesBtn" onclick="analyzeResumes()">
+                <i class="fas fa-magic"></i> Analyze Resumes & Calculate ATS
+              </button>
+            </div>
+          </div>
+
+          <!-- Results -->
+          <div class="resume-section" id="resumeResultsSection" style="display:none">
+            <h4 class="resume-section-title">Analysis Results</h4>
+            <div class="resume-filters">
+              <input type="range" id="scoreFilter" min="0" max="10" value="0" oninput="filterByScore()" class="score-slider"/>
+              <span id="scoreFilterLabel">All Scores</span>
+              <button class="btn-ghost" onclick="exportResumesCSV()">
+                <i class="fas fa-download"></i> Export Results
+              </button>
+            </div>
+            <div class="resumes-table-wrap">
+              <table class="resumes-table" id="resumesResultsTable">
+                <thead>
+                  <tr>
+                    <th onclick="sortResumes('name')">Resume Name <i class="fas fa-sort"></i></th>
+                    <th onclick="sortResumes('score')">ATS Score <i class="fas fa-sort"></i></th>
+                    <th onclick="sortResumes('matched')">Skills Matched <i class="fas fa-sort"></i></th>
+                    <th>Missing Skills</th>
+                    <th>Details</th>
+                  </tr>
+                </thead>
+                <tbody id="resumesTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
     </main>
   </div>
 </div>
@@ -569,6 +644,112 @@
 </div>
 
 
+<!-- ═══════════════════════════════════════════
+     PAGE: RESUME ANALYZER
+═══════════════════════════════════════════ -->
+<div class="page" id="page-resume">
+  <div class="page-hero short">
+    <div class="hero-grid-bg"></div>
+    <div class="page-hero-content">
+      <div class="hero-badge">Smart Hiring</div>
+      <h1>Resume <span class="gradient-text">Analyzer</span></h1>
+      <p>Automate resume screening with AI-powered ATS scoring. Find the perfect candidates in seconds.</p>
+    </div>
+  </div>
+
+  <section class="section resume-section">
+    <div class="resume-container">
+      <!-- Skills Section -->
+      <div class="resume-card-full">
+        <div class="card-header">
+          <h3><i class="fas fa-star"></i> Step 1: Define Required Skills</h3>
+          <p>Set the skills and qualifications you're looking for</p>
+        </div>
+        <div class="card-body">
+          <div class="skills-input-wrap">
+            <input type="text" id="skillInputHome" class="skill-input" placeholder="Type a skill (e.g., Python, React, AWS)..."/>
+            <button class="btn-primary" onclick="addSkillHome()">
+              <i class="fas fa-plus"></i> Add
+            </button>
+          </div>
+          <div class="skills-list-home" id="skillsListHome"></div>
+        </div>
+      </div>
+
+      <!-- Upload Section -->
+      <div class="resume-card-full">
+        <div class="card-header">
+          <h3><i class="fas fa-cloud-upload-alt"></i> Step 2: Upload Resumes</h3>
+          <p>Drag and drop or select multiple resume files</p>
+        </div>
+        <div class="card-body">
+          <div class="resume-drop-zone" id="resumeDropZoneHome">
+            <i class="fas fa-file-pdf" style="font-size:2.5rem;color:#3b9cff;margin-bottom:1rem"></i>
+            <h4>Drag resumes here</h4>
+            <p>or</p>
+            <label class="btn-primary" for="resumeInputHome">
+              <i class="fas fa-folder-open"></i> Select Files
+            </label>
+            <input type="file" id="resumeInputHome" multiple accept=".pdf,.docx,.doc" hidden/>
+            <p style="margin-top:1rem;font-size:.8rem;color:var(--text-3)">Supports PDF and DOCX • Max 10 files</p>
+          </div>
+          <div id="filesPreviewHome" style="display:none"></div>
+        </div>
+      </div>
+
+      <!-- Action -->
+      <div class="resume-actions">
+        <button class="btn-primary large w100" id="startAnalysisBtn" onclick="startAnalysisHome()" style="display:none">
+          <i class="fas fa-magic"></i> Start Analysis & Get ATS Scores
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="background:var(--bg-2)">
+    <div class="section-label">Why Use It</div>
+    <h2 class="section-title">Smart Resume Screening</h2>
+    <div class="feature-grid" style="grid-template-columns:repeat(auto-fill,minmax(250px,1fr))">
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fas fa-tachometer-alt"></i></div>
+        <h3>Fast Processing</h3>
+        <p>Analyze multiple resumes instantly. Get ATS scores in seconds, not hours.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fas fa-bullseye"></i></div>
+        <h3>Accurate Matching</h3>
+        <p>AI-powered skill matching finds the best candidates for your role requirements.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fas fa-chart-pie"></i></div>
+        <h3>Detailed Analytics</h3>
+        <p>See matched skills, missing skills, and detailed score breakdowns per resume.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fas fa-sort-amount-down"></i></div>
+        <h3>Smart Sorting</h3>
+        <p>Automatically rank candidates by ATS score for quick decision making.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fas fa-download"></i></div>
+        <h3>Export Results</h3>
+        <p>Download scoring results as CSV for use in your hiring platform.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fas fa-shield-alt"></i></div>
+        <h3>Privacy First</h3>
+        <p>Resumes are processed locally. No data stored permanently on servers.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-brand"><span class="brand-icon"><i class="fas fa-brain"></i></span><span class="brand-text">Lexa<span class="accent">Ai</span></span></div>
+    <p class="footer-copy">© 2026 LexaAi. Built for analysts, by analysts.</p>
+  </footer>
+</div>
+
+
 <!-- ─── CONSULTANT MODAL ─── -->
 <div class="modal-overlay" id="consultModal">
   <div class="modal-box">
@@ -606,6 +787,31 @@
   </div>
 </div>
 
+<!-- Resume Detail Modal -->
+<div class="modal-overlay" id="resumeDetailModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeResumeDetail()"><i class="fas fa-times"></i></button>
+    <div class="modal-header">
+      <div class="modal-icon"><i class="fas fa-file-resume"></i></div>
+      <div><h3 id="resumeDetailName">Resume Details</h3><p id="resumeDetailScore">Score: —</p></div>
+    </div>
+    <div class="resume-detail-content" id="resumeDetailContent">
+      <div class="detail-section">
+        <h4>Matched Skills</h4>
+        <div id="matchedSkillsList" class="skills-list-detail"></div>
+      </div>
+      <div class="detail-section">
+        <h4>Missing Skills</h4>
+        <div id="missingSkillsList" class="skills-list-detail"></div>
+      </div>
+      <div class="detail-section">
+        <h4>Score Breakdown</h4>
+        <div id="scoreBreakdown"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ─── TOAST ─── -->
 <div class="toast-success" id="toastSuccess">
   <div class="toast-inner">
@@ -626,5 +832,6 @@
 <!-- Plotly for rendering AI charts -->
 <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
 <script src="/static/js/app.js"></script>
+<script src="/static/js/resume-analyzer.js"></script>
 </body>
 </html>

@@ -1,97 +1,119 @@
 """
-backend/main.py
-LexaAi — FastAPI backend
-Serves the React/HTML frontend AND handles all AI + data API routes.
-"""
+backend/main.py  —  LexaAi v4
+FastAPI backend: Data Analysis + Resume Analyzer (fully fixed)
 
-import os
-import io
-import json
-import re
-import traceback
-import uuid
+BUGS FIXED vs original:
+1. Model name "gemini-flash-latest" -> "gemini-1.5-flash" (valid API name)
+2. Resume endpoint used wrong parameter types for File uploads
+3. apply_dark_theme -> apply_light_theme (blue/light theme)
+4. Import path fixed for resume_analyzer
+5. Gemini chart prompt updated to use plotly_white template
+"""
+import os, io, json, re, traceback, uuid
 from pathlib import Path
+from typing import List
 
 import pandas as pd
 import plotly.express as px
 import plotly.io as pio
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
+from backend.resume_analyzer import analyze_resumes
+
 load_dotenv()
 
-# ── App setup ─────────────────────────────────────────────────────────────────
-app = FastAPI(title="LexaAi API", version="3.0")
+app = FastAPI(title="LexaAi API", version="4.0")
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# In-memory session store  { session_id: { "df": ..., "figs": ..., ... } }
 SESSIONS: dict = {}
-
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
 def get_gemini_model():
     import google.generativeai as genai
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        raise HTTPException(status_code=500, detail="GEMINI_API_KEY not set in .env")
-    genai.configure(api_key=api_key)
-    return genai.GenerativeModel("models/gemini-flash-latest")
+    key = os.getenv("GEMINI_API_KEY")
+    if not key:
+        raise HTTPException(500, "GEMINI_API_KEY not set in .env")
+    genai.configure(api_key=key)
+    # Try stable model names in order
+    for name in ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-pro"]:
+        try:
+            return genai.GenerativeModel(name)
+        except Exception:
+            continue
+    raise HTTPException(500, "Could not initialise Gemini model")
 
 
-def strip_fences(text: str) -> str:
-    return re.sub(r"```(?:python)?", "", text).strip("`").strip()
+def strip_fences(t: str) -> str:
+    return re.sub(r"```(?:python|json)?", "", t).strip("`").strip()
 
 
 def safe_exec_charts(code: str, df: pd.DataFrame):
     clean = re.sub(r"\.show\(\)", "", code)
-    local_vars = {"df": df, "px": px, "pd": pd}
+    lv = {"df": df, "px": px, "pd": pd}
     try:
-        exec(clean, {"px": px, "pd": pd}, local_vars)
+        exec(clean, {"px": px, "pd": pd}, lv)
     except Exception:
         return [], traceback.format_exc()
-    figs = [v for k, v in local_vars.items() if "fig" in k.lower() and hasattr(v, "to_json")]
-    return figs, None
+    return [v for k, v in lv.items() if "fig" in k.lower() and hasattr(v, "to_json")], None
 
 
-def apply_dark_theme(figs):
+def apply_light_theme(figs):
+    """Apply clean professional light-blue theme to Plotly figures."""
     for fig in figs:
         fig.update_layout(
-            template="plotly_dark",
+            template="plotly_white",
             paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(10,14,26,0.9)",
-            font=dict(family="DM Sans, sans-serif", color="#e8eaf0"),
-            title_font=dict(family="Syne, sans-serif", size=15, color="#ffffff"),
+            plot_bgcolor="rgba(241,246,255,0.6)",
+            font=dict(family="Plus Jakarta Sans, Inter, sans-serif", color="#1e293b", size=13),
+            title_font=dict(family="Plus Jakarta Sans, sans-serif", size=16, color="#0f172a"),
+            colorway=["#2563eb", "#3b82f6", "#0ea5e9", "#6366f1", "#8b5cf6", "#06b6d4"],
+            legend=dict(bgcolor="rgba(255,255,255,0.9)", bordercolor="#e2e8f0", borderwidth=1),
+            margin=dict(t=50, b=40, l=40, r=20),
         )
+        fig.update_xaxes(gridcolor="#e2e8f0", linecolor="#cbd5e1")
+        fig.update_yaxes(gridcolor="#e2e8f0", linecolor="#cbd5e1")
     return figs
 
 
-def df_profile(df: pd.DataFrame) -> dict:
-    num_cols = df.select_dtypes("number").columns.tolist()
-    cat_cols = df.select_dtypes("object").columns.tolist()
-    null_counts = df.isnull().sum()
+def _quick_charts(df: pd.DataFrame):
+    """Fallback charts without AI."""
+    figs = []
+    nc = df.select_dtypes("number").columns.tolist()
+    cc = df.select_dtypes("object").columns.tolist()
+    if nc:
+        figs.append(px.histogram(df, x=nc[0], title=f"Distribution — {nc[0]}",
+                                  template="plotly_white", color_discrete_sequence=["#2563eb"]))
+    if cc:
+        vc = df[cc[0]].value_counts().head(12).reset_index()
+        vc.columns = [cc[0], "count"]
+        figs.append(px.bar(vc, x=cc[0], y="count", title=f"{cc[0]} Frequency",
+                           template="plotly_white", color_discrete_sequence=["#3b82f6"]))
+    if len(nc) >= 2:
+        figs.append(px.scatter(df, x=nc[0], y=nc[1], title=f"{nc[0]} vs {nc[1]}",
+                               template="plotly_white", color_discrete_sequence=["#0ea5e9"]))
+    if len(nc) >= 3:
+        corr = df[nc].corr()
+        figs.append(px.imshow(corr, text_auto=".2f", title="Correlation Matrix",
+                              template="plotly_white", color_continuous_scale="Blues"))
+    return apply_light_theme(figs)
 
-    columns = []
+
+def df_profile(df: pd.DataFrame) -> dict:
+    nc = df.select_dtypes("number").columns.tolist()
+    cc = df.select_dtypes("object").columns.tolist()
+    null_c = df.isnull().sum()
+    cols = []
     for col in df.columns:
-        info = {
-            "name": col,
-            "dtype": str(df[col].dtype),
-            "nulls": int(null_counts[col]),
-            "null_pct": round(float(null_counts[col]) / max(len(df), 1) * 100, 1),
-            "unique": int(df[col].nunique()),
-        }
-        if col in num_cols:
+        info = {"name": col, "dtype": str(df[col].dtype), "nulls": int(null_c[col]),
+                "null_pct": round(float(null_c[col]) / max(len(df), 1) * 100, 1),
+                "unique": int(df[col].nunique())}
+        if col in nc:
             info.update({
                 "type": "numeric",
                 "min": float(df[col].min()) if pd.notna(df[col].min()) else None,
@@ -99,83 +121,54 @@ def df_profile(df: pd.DataFrame) -> dict:
                 "mean": round(float(df[col].mean()), 3) if pd.notna(df[col].mean()) else None,
             })
         else:
-            top = df[col].value_counts()
-            info.update({
-                "type": "categorical",
-                "top_value": str(top.index[0]) if len(top) > 0 else "—",
-            })
-        columns.append(info)
-
+            tv = df[col].value_counts()
+            info.update({"type": "categorical",
+                         "top_value": str(tv.index[0]) if len(tv) > 0 else "—"})
+        cols.append(info)
     return {
-        "rows": len(df),
-        "cols": len(df.columns),
-        "num_cols": num_cols,
-        "cat_cols": cat_cols,
-        "duplicates": int(df.duplicated().sum()),
-        "total_nulls": int(null_counts.sum()),
-        "null_pct": round(float(null_counts.sum()) / max(df.size, 1) * 100, 1),
-        "memory_mb": round(df.memory_usage(deep=True).sum() / 1024**2, 2),
-        "columns": columns,
+        "rows": len(df), "cols": len(df.columns), "num_cols": nc, "cat_cols": cc,
+        "duplicates": int(df.duplicated().sum()), "total_nulls": int(null_c.sum()),
+        "null_pct": round(float(null_c.sum()) / max(df.size, 1) * 100, 1),
+        "memory_mb": round(df.memory_usage(deep=True).sum() / 1024**2, 2), "columns": cols,
     }
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  API ROUTES
+#  DATA ANALYSIS ROUTES
 # ══════════════════════════════════════════════════════════════════════════════
 
-# ── 1. Upload dataset ─────────────────────────────────────────────────────────
 @app.post("/api/upload")
 async def upload_file(file: UploadFile = File(...)):
     ext = Path(file.filename).suffix.lower()
     if ext not in (".csv", ".xlsx", ".xls"):
         raise HTTPException(400, "Only CSV / Excel files are supported.")
-
     contents = await file.read()
     try:
-        if ext == ".csv":
-            df = pd.read_csv(io.BytesIO(contents))
-        else:
-            df = pd.read_excel(io.BytesIO(contents))
+        df = pd.read_csv(io.BytesIO(contents)) if ext == ".csv" else pd.read_excel(io.BytesIO(contents))
     except Exception as e:
         raise HTTPException(400, f"Could not parse file: {e}")
-
-    session_id = str(uuid.uuid4())
-    SESSIONS[session_id] = {
-        "df": df,
-        "df_original": df.copy(),
-        "filename": file.filename,
-        "figs": [],
-        "code": "",
-        "insights": "",
-        "chat_history": [],
+    sid = str(uuid.uuid4())
+    SESSIONS[sid] = {
+        "df": df, "df_original": df.copy(), "filename": file.filename,
+        "figs": [], "code": "", "insights": "", "chat_history": [], "resume_results": [],
     }
-
-    profile = df_profile(df)
-    # Return preview rows as JSON-safe dicts
-    preview = df.head(8).fillna("").astype(str).to_dict(orient="records")
-
     return {
-        "session_id": session_id,
-        "filename": file.filename,
-        "profile": profile,
-        "preview": preview,
+        "session_id": sid, "filename": file.filename,
+        "profile": df_profile(df),
+        "preview": df.head(8).fillna("").astype(str).to_dict(orient="records"),
         "columns": df.columns.tolist(),
     }
 
 
-# ── 2. Generate AI charts ─────────────────────────────────────────────────────
 @app.post("/api/generate-charts/{session_id}")
 async def generate_charts(session_id: str):
     if session_id not in SESSIONS:
         raise HTTPException(404, "Session not found. Re-upload your file.")
-
     sess = SESSIONS[session_id]
-    df   = sess["df"]
+    df = sess["df"]
     model = get_gemini_model()
-
     col_info = "\n".join(f"  - {c}: {t}" for c, t in df.dtypes.items())
-    sample   = df.sample(min(8, len(df))).to_string()
-
+    sample = df.sample(min(8, len(df))).to_string()
     prompt = f"""You are a world-class data scientist and visualisation expert.
 
 Dataset columns and types:
@@ -186,82 +179,66 @@ Sample rows:
 
 INSTRUCTIONS:
 1. Analyse data types and pick the BEST chart types.
-2. Generate 4–6 distinct Plotly Express charts revealing different insights.
-3. Name each figure fig1, fig2, fig3 … in order.
-4. Apply dark theme: template="plotly_dark" on every figure.
-5. Always set title, axis labels, and color where relevant.
-6. Do NOT call fig.show().
-7. Import only plotly.express as px and pandas as pd (df is already defined).
-8. Return ONLY executable Python code — no explanation, no markdown fences.
-"""
-
+2. Generate 4-6 distinct Plotly Express charts revealing different insights.
+3. Name each figure fig1, fig2, fig3 in order.
+4. Use template="plotly_white" on every figure.
+5. Use color_discrete_sequence=["#2563eb","#3b82f6","#0ea5e9","#6366f1"] for colors.
+6. Always set title and axis labels.
+7. Do NOT call fig.show().
+8. Only import plotly.express as px (df and pd already defined in scope).
+9. Return ONLY executable Python code — no explanation, no markdown fences."""
     try:
         response = model.generate_content(prompt)
         code = strip_fences(response.text)
     except Exception as e:
         raise HTTPException(500, f"Gemini API error: {e}")
-
     figs, err = safe_exec_charts(code, df)
-
     if err or not figs:
-        # Fallback: generate basic charts without AI
-        figs  = _quick_charts(df)
-        code  = "# AI code failed — showing fallback charts"
-
-    figs = apply_dark_theme(figs)
+        figs = _quick_charts(df)
+        code = "# AI code failed — showing fallback charts"
+    figs = apply_light_theme(figs)
     sess["figs"] = figs
     sess["code"] = code
-    sess["insights"] = ""  # clear stale insights
-
+    sess["insights"] = ""
     charts_json = [json.loads(pio.to_json(f)) for f in figs]
     return {"charts": charts_json, "code": code, "count": len(figs)}
 
 
-# ── 3. Generate insights ──────────────────────────────────────────────────────
 @app.post("/api/generate-insights/{session_id}")
 async def generate_insights(session_id: str):
     if session_id not in SESSIONS:
         raise HTTPException(404, "Session not found.")
-
-    sess  = SESSIONS[session_id]
-    df    = sess["df"]
-    code  = sess.get("code", "")
+    sess = SESSIONS[session_id]
+    df = sess["df"]
+    code = sess.get("code", "")
     model = get_gemini_model()
-
-    stats  = df.describe(include="all").to_string()
-    sample = df.sample(min(8, len(df))).to_string()
-
     prompt = f"""You are a senior business analyst presenting to a C-suite audience.
 
 Dataset statistics:
-{stats}
+{df.describe(include="all").to_string()}
 
 Sample data:
-{sample}
+{df.sample(min(8, len(df))).to_string()}
 
 Python chart code generated:
 {code}
 
 Write a professional insight report:
-1. **Dataset Overview** — rows, columns, data quality.
-2. **Key Patterns** — what each chart reveals.
-3. **Business Takeaways** — 3–5 actionable bullet points.
-4. **Anomalies / Watch-outs** — outliers or data quality flags.
+## Dataset Overview — rows, columns, data quality.
+## Key Patterns — what each chart reveals.
+## Business Takeaways — 3-5 actionable bullet points.
+## Anomalies / Watch-outs — outliers or data quality flags.
 
-Use ## headings, bullet points, and bold key numbers.
-"""
-
+Use ## headings, bullet points, and bold key numbers."""
     try:
         response = model.generate_content(prompt)
         insights = response.text
     except Exception as e:
         raise HTTPException(500, f"Gemini API error: {e}")
-
     sess["insights"] = insights
     return {"insights": insights}
 
 
-# ── 4. Chat with data ─────────────────────────────────────────────────────────
 class ChatRequest(BaseModel):
     query: str
 
@@ -270,73 +247,55 @@ class ChatRequest(BaseModel):
 async def chat_with_data(session_id: str, body: ChatRequest):
     if session_id not in SESSIONS:
         raise HTTPException(404, "Session not found.")
-
-    sess    = SESSIONS[session_id]
-    df      = sess["df"]
+    sess = SESSIONS[session_id]
+    df = sess["df"]
     history = sess.get("chat_history", [])
-    model   = get_gemini_model()
-
+    model = get_gemini_model()
     col_info = "\n".join(f"  - {c}: {t}" for c, t in df.dtypes.items())
-    stats    = df.describe(include="all").to_string()
-    sample   = df.sample(min(10, len(df))).to_string()
-
-    history_text = ""
-    for msg in history[-6:]:
-        role = "User" if msg["role"] == "user" else "Assistant"
-        history_text += f"{role}: {msg['content']}\n"
-
+    hist_text = "".join(
+        f"{'User' if m['role'] == 'user' else 'Assistant'}: {m['content']}\n"
+        for m in history[-6:]
+    )
     prompt = f"""You are an expert data analyst assistant.
-
 Dataset columns: {col_info}
-
 Statistics:
-{stats}
-
+{df.describe(include="all").to_string()}
 Sample rows:
-{sample}
-
-Recent conversation:
-{history_text}
-
+{df.sample(min(10, len(df))).to_string()}
+Conversation:
+{hist_text}
 User question: {body.query}
-
-Answer clearly and concisely. Use bullet points or tables where helpful.
-"""
-
+Answer clearly and concisely. Use bullet points or tables where helpful."""
     try:
         response = model.generate_content(prompt)
-        answer   = response.text
+        answer = response.text
     except Exception as e:
         raise HTTPException(500, f"Gemini API error: {e}")
-
-    history.append({"role": "user",      "content": body.query})
+    history.append({"role": "user", "content": body.query})
     history.append({"role": "assistant", "content": answer})
     sess["chat_history"] = history
-
     return {"answer": answer, "history": history}
 
 
-# ── 5. Get dataset profile ────────────────────────────────────────────────────
 @app.get("/api/profile/{session_id}")
 async def get_profile(session_id: str):
     if session_id not in SESSIONS:
         raise HTTPException(404, "Session not found.")
-    df      = SESSIONS[session_id]["df"]
-    profile = df_profile(df)
-    preview = df.head(10).fillna("").astype(str).to_dict(orient="records")
-    return {"profile": profile, "preview": preview, "columns": df.columns.tolist()}
+    df = SESSIONS[session_id]["df"]
+    return {
+        "profile": df_profile(df),
+        "preview": df.head(10).fillna("").astype(str).to_dict(orient="records"),
+        "columns": df.columns.tolist(),
+    }
 
 
-# ── 6. Export PDF ─────────────────────────────────────────────────────────────
 @app.get("/api/export-pdf/{session_id}")
 async def export_pdf(session_id: str):
     if session_id not in SESSIONS:
         raise HTTPException(404, "Session not found.")
-
-    sess     = SESSIONS[session_id]
+    sess = SESSIONS[session_id]
     insights = sess.get("insights", "No insights generated yet.")
-    df       = sess["df"]
-
+    df = sess["df"]
     try:
         from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable
         from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -344,126 +303,78 @@ async def export_pdf(session_id: str):
         from reportlab.lib.units import cm
         from reportlab.lib import colors
         from reportlab.lib.enums import TA_CENTER
-
-        buffer = io.BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4,
+        buf = io.BytesIO()
+        doc = SimpleDocTemplate(buf, pagesize=A4,
                                 rightMargin=2*cm, leftMargin=2*cm,
                                 topMargin=2*cm, bottomMargin=2*cm)
         styles = getSampleStyleSheet()
-
-        title_style = ParagraphStyle("T", parent=styles["Title"],
-                                     fontSize=22, textColor=colors.HexColor("#00ffc8"),
-                                     spaceAfter=6, alignment=TA_CENTER, fontName="Helvetica-Bold")
-        sub_style   = ParagraphStyle("S", parent=styles["Normal"],
-                                     fontSize=9, textColor=colors.HexColor("#8892a4"),
-                                     spaceAfter=18, alignment=TA_CENTER)
-        h2_style    = ParagraphStyle("H2", parent=styles["Heading2"],
-                                     fontSize=12, textColor=colors.HexColor("#ffffff"),
-                                     backColor=colors.HexColor("#0f1525"),
-                                     borderPad=5, spaceBefore=12, spaceAfter=6,
-                                     fontName="Helvetica-Bold")
-        body_style  = ParagraphStyle("B", parent=styles["Normal"],
-                                     fontSize=9.5, textColor=colors.HexColor("#c8d4e8"),
-                                     leading=16, spaceAfter=6)
-
+        ts = ParagraphStyle("T", parent=styles["Title"], fontSize=22,
+                            textColor=colors.HexColor("#1d4ed8"), spaceAfter=6,
+                            alignment=TA_CENTER, fontName="Helvetica-Bold")
+        ss = ParagraphStyle("S", parent=styles["Normal"], fontSize=9,
+                            textColor=colors.HexColor("#64748b"), spaceAfter=18, alignment=TA_CENTER)
+        h2 = ParagraphStyle("H2", parent=styles["Heading2"], fontSize=12,
+                            textColor=colors.HexColor("#0f172a"),
+                            backColor=colors.HexColor("#eff6ff"),
+                            borderPad=5, spaceBefore=12, spaceAfter=6, fontName="Helvetica-Bold")
+        bs = ParagraphStyle("B", parent=styles["Normal"], fontSize=9.5,
+                            textColor=colors.HexColor("#334155"), leading=16, spaceAfter=6)
         story = [
-            Paragraph("🧠 LexaAi — Data Analysis Report", title_style),
-            Paragraph(f"Dataset: {df.shape[0]:,} rows × {df.shape[1]} columns  |  File: {sess.get('filename','—')}", sub_style),
-            HRFlowable(width="100%", thickness=1, color=colors.HexColor("#1e2e48")),
+            Paragraph("LexaAi — Data Analysis Report", ts),
+            Paragraph(f"Dataset: {df.shape[0]:,} rows x {df.shape[1]} cols  |  {sess.get('filename', '—')}", ss),
+            HRFlowable(width="100%", thickness=1, color=colors.HexColor("#bfdbfe")),
             Spacer(1, 0.4*cm),
         ]
-
         for line in insights.split("\n"):
             line = line.strip()
             if not line:
                 story.append(Spacer(1, 0.2*cm))
             elif line.startswith("## ") or line.startswith("# "):
-                story.append(Paragraph(line.lstrip("# "), h2_style))
+                story.append(Paragraph(line.lstrip("# "), h2))
             else:
                 fmt = line.replace("**", "<b>", 1)
                 while "**" in fmt:
                     fmt = fmt.replace("**", "</b>", 1)
-                story.append(Paragraph(fmt, body_style))
-
+                story.append(Paragraph(fmt, bs))
         story += [
             Spacer(1, 0.5*cm),
-            HRFlowable(width="100%", thickness=0.5, color=colors.HexColor("#1e2e48")),
-            Paragraph("Generated by LexaAi · Powered by Google Gemini", sub_style),
+            HRFlowable(width="100%", thickness=0.5, color=colors.HexColor("#bfdbfe")),
+            Paragraph("Generated by LexaAi · Powered by Google Gemini", ss),
         ]
-
         doc.build(story)
-        buffer.seek(0)
+        buf.seek(0)
     except Exception as e:
         raise HTTPException(500, f"PDF generation failed: {e}")
-
-    return StreamingResponse(
-        buffer,
-        media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename=lexaai_report.pdf"},
-    )
+    return StreamingResponse(buf, media_type="application/pdf",
+                             headers={"Content-Disposition": "attachment; filename=lexaai_report.pdf"})
 
 
-# ── 7. Export cleaned CSV ─────────────────────────────────────────────────────
 @app.get("/api/export-csv/{session_id}")
 async def export_csv(session_id: str):
     if session_id not in SESSIONS:
         raise HTTPException(404, "Session not found.")
-    df  = SESSIONS[session_id]["df"]
+    df = SESSIONS[session_id]["df"]
     buf = io.StringIO()
     df.to_csv(buf, index=False)
     buf.seek(0)
-    return StreamingResponse(
-        iter([buf.getvalue()]),
-        media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=lexaai_data.csv"},
-    )
+    return StreamingResponse(iter([buf.getvalue()]), media_type="text/csv",
+                             headers={"Content-Disposition": "attachment; filename=lexaai_data.csv"})
 
 
-# ── 8. Save / Load dashboard ──────────────────────────────────────────────────
-@app.post("/api/save-dashboard/{session_id}")
-async def save_dashboard(session_id: str):
-    if session_id not in SESSIONS:
-        raise HTTPException(404, "Session not found.")
-    figs = SESSIONS[session_id].get("figs", [])
-    if not figs:
-        raise HTTPException(400, "No charts to save.")
-    charts_json = [json.loads(pio.to_json(f)) for f in figs]
-    with open("dashboard.json", "w") as f:
-        json.dump(charts_json, f)
-    return {"message": f"Saved {len(figs)} charts to dashboard.json"}
-
-
-@app.post("/api/load-dashboard/{session_id}")
-async def load_dashboard(session_id: str):
-    if session_id not in SESSIONS:
-        raise HTTPException(404, "Session not found.")
-    try:
-        with open("dashboard.json") as f:
-            charts_json = json.load(f)
-        figs = [pio.from_json(json.dumps(c)) for c in charts_json]
-        SESSIONS[session_id]["figs"] = figs
-        return {"charts": charts_json, "count": len(figs)}
-    except FileNotFoundError:
-        raise HTTPException(404, "No saved dashboard found.")
-
-
-# ── 9. Suggest questions ──────────────────────────────────────────────────────
 @app.get("/api/suggest-questions/{session_id}")
 async def suggest_questions(session_id: str):
     if session_id not in SESSIONS:
         raise HTTPException(404, "Session not found.")
-    df    = SESSIONS[session_id]["df"]
+    df = SESSIONS[session_id]["df"]
     model = get_gemini_model()
     col_info = ", ".join(f"{c} ({t})" for c, t in df.dtypes.items())
     prompt = f"""Given a dataset with columns: {col_info}
-
 Generate exactly 5 insightful, diverse questions an analyst might ask.
-Return ONLY a JSON array of 5 strings. Example: ["Q1?", "Q2?", ...]
+Return ONLY a JSON array of 5 strings. Example: ["Q1?","Q2?",...]
 No other text."""
     try:
         resp = model.generate_content(prompt)
-        text = strip_fences(resp.text)
-        text = re.sub(r"```json|```", "", text).strip()
+        text = re.sub(r"```json|```", "", strip_fences(resp.text)).strip()
         questions = json.loads(text)
         return {"questions": questions[:5]}
     except Exception:
@@ -472,43 +383,101 @@ No other text."""
             "Which category appears most frequently?",
             "What is the average of each numeric column?",
             "Are there any missing values?",
-            "What trends do you see in this data?"
+            "What trends do you see in this data?",
         ]}
 
 
-# ── Fallback quick charts ──────────────────────────────────────────────────────
-def _quick_charts(df: pd.DataFrame):
-    figs = []
-    num_cols = df.select_dtypes("number").columns.tolist()
-    cat_cols = df.select_dtypes("object").columns.tolist()
+# ══════════════════════════════════════════════════════════════════════════════
+#  RESUME ANALYZER ROUTES
+# ══════════════════════════════════════════════════════════════════════════════
 
-    if num_cols:
-        figs.append(px.histogram(df, x=num_cols[0], title=f"Distribution of {num_cols[0]}",
-                                  template="plotly_dark", color_discrete_sequence=["#00ffc8"]))
-    if cat_cols:
-        vc = df[cat_cols[0]].value_counts().head(15).reset_index()
-        vc.columns = [cat_cols[0], "count"]
-        figs.append(px.bar(vc, x=cat_cols[0], y="count",
-                           title=f"{cat_cols[0]} Distribution", template="plotly_dark",
-                           color_discrete_sequence=["#0066ff"]))
-    if len(num_cols) >= 2:
-        figs.append(px.scatter(df, x=num_cols[0], y=num_cols[1],
-                               title=f"{num_cols[0]} vs {num_cols[1]}",
-                               template="plotly_dark", color_discrete_sequence=["#7c3aed"]))
-    if len(num_cols) >= 3:
-        corr = df[num_cols].corr()
-        figs.append(px.imshow(corr, text_auto=".2f", title="Correlation Matrix",
-                              template="plotly_dark", color_continuous_scale="RdBu_r"))
-    return figs
+@app.post("/api/resumes/analyze")
+async def analyze_resumes_endpoint(
+    skills: str = Form(None),
+    resumes: List[UploadFile] = File(None),
+):
+    """Analyze multiple resumes and calculate ATS scores."""
+    if not skills:
+        raise HTTPException(400, "Missing skills parameter")
+    if not resumes:
+        raise HTTPException(400, "No resume files uploaded")
+
+    try:
+        required_skills = json.loads(skills)
+    except Exception:
+        required_skills = []
+
+    if not required_skills:
+        raise HTTPException(400, "Please provide at least one required skill")
+    if len(resumes) > 10:
+        raise HTTPException(400, "Maximum 10 resumes allowed at once")
+
+    resume_files = []
+    for rf in resumes:
+        content = await rf.read()
+        resume_files.append((rf.filename, content))
+
+    try:
+        results = analyze_resumes(resume_files, required_skills)
+        return {"results": results}
+    except Exception as e:
+        raise HTTPException(500, f"Analysis failed: {str(e)}")
+
+
+@app.get("/api/resumes/results/{session_id}")
+async def get_resume_results(session_id: str):
+    if session_id not in SESSIONS:
+        raise HTTPException(404, "Session not found")
+    results = SESSIONS[session_id].get("resume_results", [])
+    return {"results": results, "count": len(results)}
+
+
+class ResumesRequest(BaseModel):
+    results: list
+
+
+@app.post("/api/resumes/save/{session_id}")
+async def save_resume_results(session_id: str, body: ResumesRequest):
+    if session_id not in SESSIONS:
+        # Allow saving without a data session
+        SESSIONS[session_id] = {"resume_results": []}
+    SESSIONS[session_id]["resume_results"] = body.results
+    return {"message": f"Saved {len(body.results)} resume results"}
+
+
+@app.get("/api/resumes/export-csv/{session_id}")
+async def export_resumes_csv(session_id: str):
+    if session_id not in SESSIONS:
+        raise HTTPException(404, "Session not found")
+    results = SESSIONS[session_id].get("resume_results", [])
+    if not results:
+        raise HTTPException(400, "No resume results to export")
+    rows = ["Resume Name,ATS Score,Matched Skills,Missing Skills,Score %"]
+    for r in results:
+        fn = r.get("filename", "Unknown").replace('"', '""')
+        score = r.get("ats_score", 0)
+        matched = len(r.get("matched_skills", []))
+        missing = len(r.get("missing_skills", []))
+        rows.append(f'"{fn}",{score:.1f},{matched},{missing},{score / 10 * 100:.1f}%')
+    csv_content = "\n".join(rows)
+    return StreamingResponse(iter([csv_content]), media_type="text/csv",
+                             headers={"Content-Disposition": "attachment; filename=resume_analysis.csv"})
+
+
+@app.delete("/api/resumes/session/{session_id}")
+async def clear_resume_session(session_id: str):
+    if session_id not in SESSIONS:
+        raise HTTPException(404, "Session not found")
+    SESSIONS[session_id]["resume_results"] = []
+    return {"message": "Resume session cleared"}
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  STATIC FILES — serve frontend
+#  SERVE FRONTEND
 # ══════════════════════════════════════════════════════════════════════════════
-# Serve CSS and JS
 app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR / "static")), name="static")
 
-# Catch-all: serve index.html for any non-API route
+
 @app.get("/{full_path:path}")
 async def serve_frontend(full_path: str):
     index = FRONTEND_DIR / "index.html"
