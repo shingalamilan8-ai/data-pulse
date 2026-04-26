@@ -62,8 +62,7 @@ document.querySelectorAll('[data-page]').forEach(function(el) {
 var PANEL_TITLES = {
   upload:   { title: 'Upload Your Dataset',  sub: "CSV or Excel — we'll handle the rest" },
   charts:   { title: 'Generated Charts',     sub: 'AI-selected based on your data'       },
-  insights: { title: 'AI Insights',          sub: 'Deep analysis powered by Gemini'      },
-  analysis: { title: 'AI Data Chat',         sub: 'Ask anything about your dataset'      },
+  analysis: { title: 'AI Analysis',          sub: 'Chat & Insights in one place'         },
   summary:  { title: 'Data Summary',         sub: 'Column profiles and data preview'     },
   export:   { title: 'Export',               sub: 'Download reports, CSV, and dashboards'},
   'resume-analysis': { title: 'Resume Analyzer', sub: 'Upload and analyze multiple resumes' }
@@ -83,8 +82,56 @@ function switchDash(panelId) {
 
   if (panelId === 'charts'   && state.fileLoaded) renderChartsPanel();
   if (panelId === 'summary'  && state.fileLoaded) renderSummaryPanel();
-  if (panelId === 'insights' && state.fileLoaded) renderInsightsPanel();
+  if (panelId === 'analysis' && state.fileLoaded) renderAnalysisPanel();
   if (panelId === 'export'   && state.fileLoaded) renderExportPanel();
+}
+
+// ── Analysis Tab Switching (Chat + Insights) ───────────
+function switchAnalysisTab(tab) {
+  document.querySelectorAll('.analysis-tab').forEach(function(t) {
+    t.classList.toggle('active', t.dataset.tab === tab);
+  });
+  document.querySelectorAll('.analysis-content').forEach(function(c) {
+    c.classList.toggle('active', c.id === 'analysis' + tab.charAt(0).toUpperCase() + tab.slice(1));
+  });
+}
+
+// ── Render Unified Analysis Panel ───────────────────────
+function renderAnalysisPanel() {
+  if (!state.sessionId) return;
+  document.getElementById('noAnalysisMsg').classList.add('hidden');
+  document.getElementById('analysisWrap').classList.remove('hidden');
+  if (state.insights) renderInsightContent(state.insights);
+}
+
+// ── Custom Chart Request ─────────────────────────────────
+async function requestCustomChart() {
+  if (!state.sessionId) { showToast('Error', 'Upload a file first.', true); return; }
+  var input = document.getElementById('customChartInput');
+  var request = input.value.trim();
+  if (!request) { showToast('Error', 'Please describe the chart you want.', true); return; }
+  
+  showLoader('Creating custom chart…');
+  
+  try {
+    var res = await fetch(API + '/api/custom-chart/' + state.sessionId, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ request: request })
+    });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Chart generation failed');
+    
+    // Add new chart to existing charts
+    state.chartsData = state.chartsData.concat(data.charts);
+    input.value = '';
+    hideLoader();
+    renderChartsPanel();
+    showToast('Success', 'Custom chart generated!', false);
+  } catch(err) {
+    hideLoader();
+    showToast('Chart Error', err.message, true);
+  }
 }
 
 document.querySelectorAll('.sidebar-item').forEach(function(item) {

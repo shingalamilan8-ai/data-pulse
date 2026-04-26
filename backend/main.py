@@ -11,7 +11,7 @@ BUGS FIXED vs original:
 """
 import os, io, json, re, traceback, uuid
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import pandas as pd
 import plotly.express as px
@@ -204,6 +204,62 @@ INSTRUCTIONS:
     return {"charts": charts_json, "code": code, "count": len(figs)}
 
 
+# ── 3. Custom Chart Request ───────────────────────────────────────────────────
+class CustomChartRequest(BaseModel):
+    request: str
+
+@app.post("/api/custom-chart/{session_id}")
+async def custom_chart(session_id: str, req: CustomChartRequest):
+    if session_id not in SESSIONS:
+        raise HTTPException(404, "Session not found. Re-upload your file.")
+    
+    sess = SESSIONS[session_id]
+    df = sess["df"]
+    model = get_gemini_model()
+    
+    col_info = "\n".join(f"  - {c}: {t}" for c, t in df.dtypes.items())
+    sample = df.sample(min(8, len(df))).to_string()
+    
+    prompt = f"""You are a world-class data scientist and visualisation expert.
+
+Dataset columns and types:
+{col_info}
+
+Sample rows:
+{sample}
+
+USER REQUEST: {req.request}
+
+INSTRUCTIONS:
+1. Create exactly ONE Plotly Express chart based on the user's request.
+2. Use template="plotly_white" on the figure.
+3. Use color_discrete_sequence=["#2563eb","#3b82f6","#0ea5e9","#6366f1"] for colors.
+4. Always set title and axis labels.
+5. Do NOT call fig.show().
+6. Only import plotly.express as px (df and pd already defined in scope).
+7. Return ONLY executable Python code — no explanation, no markdown fences."""
+
+    try:
+        response = model.generate_content(prompt)
+        code = strip_fences(response.text)
+    except Exception as e:
+        raise HTTPException(500, f"Gemini API error: {e}")
+
+    figs, err = safe_exec_charts(code, df)
+    
+    if err or not figs:
+        raise HTTPException(400, f"Could not generate chart: {err or 'No chart created'}")
+
+    figs = apply_light_theme(figs)
+    
+    # Append to existing charts
+    sess["figs"].extend(figs)
+    sess["code"] += "\n\n# Custom chart\n" + code
+    
+    charts_json = [json.loads(pio.to_json(f)) for f in figs]
+    return {"charts": charts_json, "code": code, "count": len(figs)}
+
+
 @app.post("/api/generate-insights/{session_id}")
 async def generate_insights(session_id: str):
     if session_id not in SESSIONS:
@@ -391,9 +447,14 @@ No other text."""
 #  RESUME ANALYZER ROUTES
 # ══════════════════════════════════════════════════════════════════════════════
 
+class ResumeAnalyzeRequest(BaseModel):
+    skills: List[str]
+    job_description: Optional[str] = None
+
 @app.post("/api/resumes/analyze")
 async def analyze_resumes_endpoint(
     skills: str = Form(None),
+    job_description: str = Form(None),
     resumes: List[UploadFile] = File(None),
 ):
     """Analyze multiple resumes and calculate ATS scores."""
@@ -412,6 +473,13 @@ async def analyze_resumes_endpoint(
     if len(resumes) > 10:
         raise HTTPException(400, "Maximum 10 resumes allowed at once")
 
+    # Extract skills from job description if provided
+    if job_description:
+        extracted_skills = extract_skills_from_text(job_description)
+        for skill in extracted_skills:
+            if skill not in required_skills:
+                required_skills.append(skill)
+
     resume_files = []
     for rf in resumes:
         content = await rf.read()
@@ -419,9 +487,45 @@ async def analyze_resumes_endpoint(
 
     try:
         results = analyze_resumes(resume_files, required_skills)
-        return {"results": results}
+        
+        # Add additional metadata
+        for result in results:
+            result["analyzed_at"] = pd.Timestamp.now().isoformat()
+            result["total_skills_evaluated"] = len(required_skills)
+        
+        return {
+            "results": results,
+            "summary": {
+                "total_resumes": len(results),
+                "total_skills": len(required_skills),
+                "skills_list": required_skills,
+                "avg_score": sum(r.get("ats_score", 0) for r in results) / len(results) if results else 0,
+                "top_candidate": results[0]["filename"] if results else None,
+                "high_score_count": len([r for r in results if r.get("ats_score", 0) >= 7]),
+                "mid_score_count": len([r for r in results if 4 <= r.get("ats_score", 0) < 7]),
+                "low_score_count": len([r for r in results if r.get("ats_score", 0) < 4])
+            }
+        }
     except Exception as e:
         raise HTTPException(500, f"Analysis failed: {str(e)}")
+
+
+def extract_skills_from_text(text: str) -> List[str]:
+    """Extract potential skills from job description text."""
+    common_skills = [
+        "python", "java", "javascript", "typescript", "c++", "c#", "ruby", "go", "rust",
+        "react", "angular", "vue", "node", "django", "flask", "spring", "express",
+        "sql", "mysql", "postgresql", "mongodb", "oracle", "redis", "elasticsearch",
+        "aws", "azure", "gcp", "docker", "kubernetes", "terraform", "jenkins", "git",
+        "machine learning", "deep learning", "data science", "ai", "nlp", "computer vision",
+        "agile", "scrum", "jira", "rest api", "graphql", "microservices"
+    ]
+    text_lower = text.lower()
+    found_skills = []
+    for skill in common_skills:
+        if skill in text_lower:
+            found_skills.append(skill.title() if len(skill) > 3 else skill.upper())
+    return found_skills[:15]  # Limit to 15 skills
 
 
 @app.get("/api/resumes/results/{session_id}")
