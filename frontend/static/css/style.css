@@ -2398,6 +2398,41 @@ img {
   font-weight: 600;
 }
 
+/* Services cards layout improvements: keep service buttons aligned */
+.services-cards {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.svc-card {
+  flex: 1 1 320px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 240px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 1.2rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.svc-card .svc-desc { flex: 1; }
+
+.svc-card button {
+  margin-top: 1rem;
+  align-self: center;
+  min-width: 160px;
+}
+
+@media (max-width: 900px) {
+  .services-cards { flex-direction: column; }
+  .svc-card { width: 100%; }
+}
+
 .skill-tag button {
   background: none;
   border: none;
@@ -3106,13 +3141,26 @@ img {
 .modal-bg {
   position: fixed;
   inset: 0;
-  z-index: 400;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(10px);
+  z-index: 9998;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: none;
   align-items: center;
   justify-content: center;
   padding: 1rem;
+}
+
+.modal-bg.open {
+  display: flex;
+}
+
+/* When modal is open, blur background slightly and prevent scroll */
+body.modal-open > *:not(.modal-bg) {
+  filter: blur(0.6px);
+}
+body.modal-open {
+  overflow: hidden;
 }
 
 .modal-bg.open {

@@ -225,6 +225,10 @@ function navigateTo(page) {
         l.classList.toggle('active', l.dataset.page === page);
     });
     
+    // Close any open global modals when navigating away
+    if (page !== 'resume' && typeof closeResumeModal === 'function') closeResumeModal();
+    if (page !== 'consultancy' && typeof closeModal === 'function') closeModal();
+
     AppState.currentPage = page;
     if (DOM.mobileMenu) DOM.mobileMenu.classList.remove('open');
     window.scrollTo(0, 0);
@@ -334,38 +338,51 @@ async function generateCharts() {
         showToast('Error', 'Upload a file first.', true);
         return;
     }
-    
+
     showLoader('AI is analyzing your data...');
-    
+
     const steps = [
         { delay: 800, text: 'Analyzing column types...' },
         { delay: 1600, text: 'Selecting optimal chart types...' },
         { delay: 2400, text: 'Generating visualizations...' },
         { delay: 3200, text: 'Finalizing charts...' }
     ];
-    
+
     steps.forEach(step => setTimeout(() => updateLoaderText(step.text), step.delay));
-    
+
     try {
         const response = await fetch(`${API}/api/generate-charts/${AppState.sessionId}`, { method: 'POST' });
         const data = await response.json();
-        
+
         if (!response.ok) throw new Error(data.detail || 'Chart generation failed');
-        
-        AppState.chartsData = data.charts;
-        AppState.code = data.code;
-        
+
+        // Tag initial charts so follow-ups can be separated
+        AppState.chartsData = (data.charts || []).map(c => ({ chart: c, source: 'initial' }));
+        AppState.code = data.code || '';
+        AppState.initialChartCount = AppState.chartsData.length;
+
         hideLoader();
-        
+
         if (data.fallback) {
             showToast('Info', 'Using fallback charts (AI service optimized)');
         } else {
-            showToast('Success', `${data.count} charts generated!`);
+            showToast('Success', `${data.count || AppState.chartsData.length} charts generated!`);
         }
-        
+
+        // Render charts and ensure chat/insights are visible under charts
         switchDash('charts');
-        addBotMessage(`📊 I've analyzed your dataset and generated <strong>${data.count} charts</strong>! You can view them in the Charts tab or ask me questions about the data.`);
-        
+        renderChartsPanel();
+
+        // Generate insights automatically and pin them as the "Initial Analysis"
+        try {
+            await generateInsights();
+        } catch (e) {
+            // Non-blocking: show a small notice
+            showToast('Info', 'Insights generation failed or is delayed');
+        }
+
+        addBotMessage(`📊 I've analyzed your dataset and generated <strong>${AppState.initialChartCount}</strong> charts and insights. Use the chat below for follow-ups or request custom charts.`);
+
     } catch (err) {
         hideLoader();
         showToast('Chart Error', err.message, true);
@@ -381,34 +398,36 @@ async function requestCustomChart() {
         showToast('Error', 'Upload a file first.', true);
         return;
     }
-    
+
     const input = document.getElementById('customChartInput');
     const request = input?.value.trim();
-    
+
     if (!request) {
         showToast('Error', 'Please describe the chart you want.', true);
         return;
     }
-    
+
     showLoader('Creating custom chart...');
-    
+
     try {
         const response = await fetch(`${API}/api/custom-chart/${AppState.sessionId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ request })
         });
-        
+
         const data = await response.json();
         if (!response.ok) throw new Error(data.detail || 'Chart generation failed');
-        
-        AppState.chartsData = [...AppState.chartsData, ...data.charts];
+
+        // Mark follow-up charts separately
+        const followups = (data.charts || []).map(c => ({ chart: c, source: 'followup' }));
+        AppState.chartsData = [...(AppState.chartsData || []), ...followups];
         if (input) input.value = '';
-        
+
         hideLoader();
         renderChartsPanel();
         showToast('Success', 'Custom chart generated!');
-        
+
     } catch (err) {
         hideLoader();
         showToast('Chart Error', err.message, true);
@@ -421,51 +440,80 @@ function renderChartsPanel() {
         if (DOM.chartsWrap) DOM.chartsWrap.classList.add('hidden');
         return;
     }
-    
+
     if (DOM.noChartMsg) DOM.noChartMsg.classList.add('hidden');
     if (DOM.chartsWrap) DOM.chartsWrap.classList.remove('hidden');
     if (DOM.chartCount) DOM.chartCount.textContent = `${AppState.chartsData.length} charts`;
-    
+
     if (!DOM.chartsGrid) return;
-    DOM.chartsGrid.innerHTML = '';
-    
-    AppState.chartsData.forEach((chartJson, i) => {
+
+    // Ensure unique plot ids
+    if (!AppState._chartIdx) AppState._chartIdx = 0;
+
+    // Create initial / follow-up sections
+    DOM.chartsGrid.innerHTML = `
+      <div id="charts-initial"><h3 class="charts-section-title">Initial Analysis</h3><div class="charts-section" id="chartsInitial"></div></div>
+      <div id="charts-followups"><h3 class="charts-section-title">Follow-up Requests</h3><div class="charts-section" id="chartsFollowups"></div></div>
+    `;
+
+    const initialContainer = document.getElementById('chartsInitial');
+    const followupContainer = document.getElementById('chartsFollowups');
+
+    AppState.chartsData.forEach((item, idx) => {
+        const chartJson = item.chart || item;
+        const source = item.source || 'initial';
+        const chartId = `plotly-${AppState._chartIdx++}`;
+
         const chartDiv = document.createElement('div');
         chartDiv.className = 'chart-item';
         chartDiv.dataset.type = guessChartType(chartJson);
-        
-        let title = `Chart ${i + 1}`;
+
+        let title = `Chart ${idx + 1}`;
         try {
             if (chartJson.layout?.title?.text) title = chartJson.layout.title.text;
             else if (chartJson.layout?.title) title = chartJson.layout.title;
         } catch (e) {}
-        
+
         const typeStr = guessChartType(chartJson);
-        
+
         chartDiv.innerHTML = `
             <div class="chart-item-header">
                 <span class="chart-item-title">${escapeHtml(title)}</span>
                 <span class="chart-type-badge">${typeStr}</span>
             </div>
-            <div class="plotly-wrap" id="plotly-${i}"></div>
+            <div class="plotly-wrap" id="${chartId}"></div>
         `;
-        
-        DOM.chartsGrid.appendChild(chartDiv);
-        
+
+        if (source === 'followup') followupContainer.appendChild(chartDiv);
+        else initialContainer.appendChild(chartDiv);
+
         // Render with Plotly
         try {
-            Plotly.newPlot(`plotly-${i}`, chartJson.data || [], chartJson.layout || {}, {
+            Plotly.newPlot(chartId, chartJson.data || [], chartJson.layout || {}, {
                 responsive: true,
                 displayModeBar: true,
                 modeBarButtonsToRemove: ['lasso2d', 'select2d'],
-                toImageButtonOptions: { format: 'png', filename: `lexaai_chart_${i + 1}` }
+                toImageButtonOptions: { format: 'png', filename: `lexaai_chart_${AppState._chartIdx}` }
             });
         } catch (e) {
-            document.getElementById(`plotly-${i}`).innerHTML = 
+            document.getElementById(chartId).innerHTML = 
                 `<div style="color: var(--coral); padding: 1rem;">Chart render error: ${e.message}</div>`;
         }
     });
-    
+
+    // Move the analysis chat/insights panel under charts for unified UX
+    const analysisWrap = document.getElementById('analysisWrap');
+    const chartsWrap = document.getElementById('chartsWrap');
+    if (analysisWrap && chartsWrap && !analysisWrap._movedUnderCharts) {
+        chartsWrap.appendChild(analysisWrap);
+        analysisWrap.classList.remove('hidden');
+        analysisWrap._movedUnderCharts = true;
+        // default to chat tab
+        switchAnalysisTab('chat');
+    } else if (analysisWrap) {
+        analysisWrap.classList.remove('hidden');
+    }
+
     // Display code
     if (AppState.code && DOM.codeContent) {
         DOM.codeContent.textContent = AppState.code;

@@ -78,6 +78,13 @@ function attachResumeEvents() {
             filterAndRenderResults();
         });
     }
+
+    // Close resume modal when clicking outside (attach after elements cached)
+    if (ResumeDOM.resumeDetailModal) {
+        ResumeDOM.resumeDetailModal.addEventListener('click', (e) => {
+            if (e.target === ResumeDOM.resumeDetailModal) closeResumeModal();
+        });
+    }
 }
 
 // ── Skill Management ──────────────────────────────────────────
@@ -241,14 +248,11 @@ function renderUploadedResumes() {
     
     ResumeDOM.resumeFileList.innerHTML = ResumeState.uploadedResumes.map((item, index) => `
         <div class="resume-file-item">
-            <i class="fas fa-file-${item.ext === 'pdf' ? 'pdf' : (item.ext === 'docx' ? 'word' : 'alt')}"></i>
             <div class="rfile-meta">
                 <p>${escapeHtml(item.name)}</p>
                 <p style="font-size: 0.7rem; color: var(--text-tertiary)">${(item.size / 1024).toFixed(1)} KB</p>
             </div>
-            <button class="rfile-rm" onclick="removeResume(${index})">
-                <i class="fas fa-times"></i>
-            </button>
+            <button class="rfile-rm" onclick="removeResume(${index})">Remove</button>
         </div>
     `).join('');
 }
@@ -477,8 +481,8 @@ function renderResultCards(results) {
                 </div>
                 <div class="rresult-right">
                     <div class="rresult-score ${scoreClass}">${score.toFixed(1)}<span style="font-size: 0.7rem;">/10</span></div>
-                    <button class="btn-detail" onclick="showResumeDetail(${ResumeState.analysisResults.indexOf(result)})">
-                        <i class="fas fa-eye"></i> Details
+                    <button class="btn-detail" onclick="showResumeDetailByName('${escapeHtml(result.filename).replace(/'/g, "\\'")}')">
+                        Details
                     </button>
                 </div>
             </div>
@@ -488,12 +492,25 @@ function renderResultCards(results) {
 
 // ── Resume Detail Modal ───────────────────────────────────────
 function showResumeDetail(index) {
+    // Backwards-compatible: if index is a string (filename), delegate
+    if (typeof index === 'string') return showResumeDetailByName(index);
+
     const result = ResumeState.analysisResults[index];
     if (!result) return;
     
+    openResumeModalWithResult(result);
+}
+
+function showResumeDetailByName(filename) {
+    const result = ResumeState.analysisResults.find(r => r.filename === filename);
+    if (!result) return;
+    openResumeModalWithResult(result);
+}
+
+function openResumeModalWithResult(result) {
     const modal = ResumeDOM.resumeDetailModal;
     if (!modal) return;
-    
+
     // Set modal content
     const nameEl = document.getElementById('rdName');
     const scoreEl = document.getElementById('rdScore');
@@ -501,7 +518,7 @@ function showResumeDetail(index) {
     const missingContainer = document.getElementById('rdMissing');
     const breakdownContainer = document.getElementById('rdBreakdown');
     
-    if (nameEl) nameEl.textContent = result.filename;
+    if (nameEl) nameEl.textContent = result.filename || '—';
     if (scoreEl) scoreEl.textContent = `Score: ${(result.ats_score || 0).toFixed(1)}/10`;
     
     // Matched skills
@@ -509,7 +526,7 @@ function showResumeDetail(index) {
         const matchedSkills = result.matched_skills || [];
         if (matchedSkills.length > 0) {
             matchedContainer.innerHTML = matchedSkills.map(skill => `
-                <div class="rd-tag m"><i class="fas fa-check" style="font-size: 0.7rem;"></i> ${escapeHtml(skill)}</div>
+                <div class="rd-tag m">${escapeHtml(skill)}</div>
             `).join('');
         } else {
             matchedContainer.innerHTML = '<p style="color: var(--text-tertiary);">No matched skills found</p>';
@@ -521,7 +538,7 @@ function showResumeDetail(index) {
         const missingSkills = result.missing_skills || [];
         if (missingSkills.length > 0) {
             missingContainer.innerHTML = missingSkills.map(skill => `
-                <div class="rd-tag x"><i class="fas fa-times" style="font-size: 0.7rem;"></i> ${escapeHtml(skill)}</div>
+                <div class="rd-tag x">${escapeHtml(skill)}</div>
             `).join('');
         } else {
             missingContainer.innerHTML = '<p style="color: var(--green);">✨ All required skills matched!</p>';
@@ -529,8 +546,8 @@ function showResumeDetail(index) {
     }
     
     // Score breakdown
-    if (breakdownContainer && result.score_breakdown) {
-        const breakdown = result.score_breakdown;
+    if (breakdownContainer) {
+        const breakdown = result.score_breakdown || {};
         breakdownContainer.innerHTML = `
             <div class="breakdown-row">
                 <span>Exact Matches</span>
@@ -552,6 +569,8 @@ function showResumeDetail(index) {
     }
     
     modal.classList.add('open');
+    // Add blur to background by toggling a class on body
+    document.body.classList.add('modal-open');
     document.body.style.overflow = 'hidden';
 }
 
@@ -559,18 +578,11 @@ function closeResumeModal() {
     const modal = ResumeDOM.resumeDetailModal;
     if (modal) {
         modal.classList.remove('open');
+        document.body.classList.remove('modal-open');
         document.body.style.overflow = '';
     }
 }
 
-// Close modal on outside click
-if (ResumeDOM.resumeDetailModal) {
-    ResumeDOM.resumeDetailModal.addEventListener('click', (e) => {
-        if (e.target === ResumeDOM.resumeDetailModal) {
-            closeResumeModal();
-        }
-    });
-}
 
 // ── Export Functions ──────────────────────────────────────────
 async function exportResumeCSV() {
@@ -898,6 +910,7 @@ window.addPresetSkills = addPresetSkills;
 window.removeSkill = removeSkill;
 window.screenResumes = screenResumes;
 window.showResumeDetail = showResumeDetail;
+window.showResumeDetailByName = showResumeDetailByName;
 window.closeResumeModal = closeResumeModal;
 window.removeResume = removeResume;
 window.clearAllResumes = clearAllResumes;
