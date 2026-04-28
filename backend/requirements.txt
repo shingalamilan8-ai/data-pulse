@@ -1,12 +1,30 @@
+# Core Framework
 fastapi>=0.111.0
 uvicorn[standard]>=0.30.0
 python-multipart>=0.0.9
+
+# Data Processing
 pandas>=2.0.0
-plotly>=5.18.0
-openpyxl>=3.1.0
-google-generativeai>=0.5.0
-python-dotenv>=1.0.0
-reportlab>=4.1.0
 numpy>=1.26.0
+openpyxl>=3.1.0
+
+# Visualization
+plotly>=5.18.0
+
+# AI/ML - Google Gemini (NEW SDK)
+google-genai>=0.2.0
+
+# Environment & Config
+python-dotenv>=1.0.0
+
+# PDF Generation
+reportlab>=4.1.0
+
+# Resume Parsing
 PyPDF2>=3.0.0
+pdfplumber>=0.10.0
 python-docx>=0.8.11
+
+# Additional Utilities
+requests>=2.31.0
+pillow>=10.0.0
