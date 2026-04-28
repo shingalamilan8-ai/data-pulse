@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LexaAi – AI Data & Resume Suite</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="/static/css/style.css">
   <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
 </head>
+
 <body>
 
   <!-- Navigation bar (minimal) -->
@@ -32,11 +36,15 @@
     <div class="page active" id="page-home">
       <section class="hero">
         <div class="hero-content">
-          <h1>Turn data into <span class="gradient">insights</span> and resumes into <span class="gradient">hires</span></h1>
-          <p>Upload CSV/Excel for instant AI charts and chat. Screen hundreds of resumes with intelligent ATS scoring. Powered by Gemini.</p>
+          <h1>Turn data into <span class="gradient">insights</span> and resumes into <span class="gradient">hires</span>
+          </h1>
+          <p>Upload CSV/Excel for instant AI charts and chat. Screen hundreds of resumes with intelligent ATS scoring.
+            Powered by Gemini.</p>
           <div class="hero-buttons">
-            <button class="btn primary" onclick="navigateTo('dashboard')">Start Analyzing <i class="fas fa-arrow-right"></i></button>
-            <button class="btn secondary" onclick="navigateTo('resume')">Screen Resumes <i class="fas fa-file-alt"></i></button>
+            <button class="btn primary" onclick="navigateTo('dashboard')">Start Analyzing <i
+                class="fas fa-arrow-right"></i></button>
+            <button class="btn secondary" onclick="navigateTo('resume')">Screen Resumes <i
+                class="fas fa-file-alt"></i></button>
           </div>
         </div>
         <div class="hero-stats">
@@ -64,8 +72,10 @@
             <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" hidden>
           </div>
           <div id="uploadReady" class="file-ready hidden">
-            <div class="file-info"><i class="fas fa-file-csv"></i> <span id="fileName"></span> <span id="fileMeta"></span></div>
-            <button id="analyzeBtn" class="btn primary">Generate AI Charts & Insights <i class="fas fa-magic"></i></button>
+            <div class="file-info"><i class="fas fa-file-csv"></i> <span id="fileName"></span> <span
+                id="fileMeta"></span></div>
+            <button id="analyzeBtn" class="btn primary">Generate AI Charts & Insights <i
+                class="fas fa-magic"></i></button>
           </div>
         </div>
 
@@ -73,11 +83,18 @@
         <div id="chartsSection" class="charts-section hidden">
           <div class="charts-toolbar">
             <span id="chartCount"></span>
-            <select id="chartFilter"><option value="all">All charts</option><option value="bar">Bar</option><option value="scatter">Scatter</option><option value="line">Line</option><option value="pie">Pie</option></select>
+            <select id="chartFilter">
+              <option value="all">All charts</option>
+              <option value="bar">Bar</option>
+              <option value="scatter">Scatter</option>
+              <option value="line">Line</option>
+              <option value="pie">Pie</option>
+            </select>
             <button class="btn small" onclick="regenerateCharts()"><i class="fas fa-redo"></i> Regenerate</button>
           </div>
           <div id="chartsGrid" class="charts-grid"></div>
-          <div class="code-toggle" onclick="toggleCode()">📄 View generated code <i class="fas fa-chevron-down"></i></div>
+          <div class="code-toggle" onclick="toggleCode()">📄 View generated code <i class="fas fa-chevron-down"></i>
+          </div>
           <pre id="codeBlock" class="code-pre hidden"><code id="codeContent"></code></pre>
         </div>
 
@@ -144,7 +161,8 @@
           </div>
           <div class="resume-right">
             <div id="resumeResultsEmpty" class="results-empty">
-              <i class="fas fa-users"></i><p>Ranked candidates will appear here</p>
+              <i class="fas fa-users"></i>
+              <p>Ranked candidates will appear here</p>
             </div>
             <div id="resumeResultsLoaded" class="results-loaded hidden">
               <div class="summary-cards">
@@ -154,7 +172,13 @@
                 <div class="sum-card"><span id="avgScore">0.0</span> Avg</div>
               </div>
               <div class="results-controls">
-                <select id="filterScore"><option value="all">All</option><option value="high">≥7</option><option value="mid">4‑7</option><option value="low"><4</option></select>
+                <select id="filterScore">
+                  <option value="all">All</option>
+                  <option value="high">≥7</option>
+                  <option value="mid">4‑7</option>
+                  <option value="low">
+                    <4< /option>
+                </select>
                 <button class="btn small" onclick="exportResumeCSV()">Export CSV</button>
                 <button class="btn small" onclick="exportResumePDF()">Export Report</button>
               </div>
@@ -167,19 +191,64 @@
 
     <!-- Services page (restored) -->
     <div class="page" id="page-services">
-      <div class="services-hero"><h1>Our <span class="gradient">Services</span></h1><p>AI analytics + resume screening + expert consultancy</p></div>
+      <div class="services-hero">
+        <h1>Our <span class="gradient">Services</span></h1>
+        <p>AI analytics + resume screening + expert consultancy</p>
+      </div>
       <div class="services-grid">
-        <div class="service-card"><i class="fas fa-chart-line"></i><h3>Data Analysis</h3><p>Auto charts, chat with data, PDF reports.</p><button class="btn small" onclick="navigateTo('dashboard')">Try now</button></div>
-        <div class="service-card"><i class="fas fa-file-alt"></i><h3>ATS Resume Screener</h3><p>Batch upload, skill matching, ranked scores.</p><button class="btn small" onclick="navigateTo('resume')">Screen now</button></div>
-        <div class="service-card"><i class="fas fa-users"></i><h3>Expert Consultancy</h3><p>1‑on‑1 with data scientists.</p><button class="btn small" onclick="navigateTo('consultancy')">Meet experts</button></div>
+        <div class="service-card"><i class="fas fa-chart-line"></i>
+          <h3>Data Analysis</h3>
+          <p>Auto charts, chat with data, PDF reports.</p><button class="btn small"
+            onclick="navigateTo('dashboard')">Try now</button>
+        </div>
+        <div class="service-card"><i class="fas fa-file-alt"></i>
+          <h3>ATS Resume Screener</h3>
+          <p>Batch upload, skill matching, ranked scores.</p><button class="btn small"
+            onclick="navigateTo('resume')">Screen now</button>
+        </div>
+        <div class="service-card"><i class="fas fa-users"></i>
+          <h3>Expert Consultancy</h3>
+          <p>1‑on‑1 with data scientists.</p><button class="btn small" onclick="navigateTo('consultancy')">Meet
+            experts</button>
+        </div>
       </div>
     </div>
 
     <!-- Consultancy page (restored) -->
     <div class="page" id="page-consultancy">
-      <div class="consultancy-hero"><h1>Meet our <span class="gradient">Experts</span></h1><p>World‑class professionals ready to help</p></div>
+      <div class="consultancy-hero">
+        <h1>Meet our <span class="gradient">Experts</span></h1>
+        <p>World‑class professionals ready to help</p>
+      </div>
       <div class="experts-grid" id="expertsGrid">
-        <!-- dynamically loaded or static -->
+        <div class="expert-card">
+          <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Avatar" class="expert-avatar">
+          <h3>Arjun Sharma</h3>
+          <p>Senior Data Scientist, Ex‑Google</p>
+          <p>8+ years in ML & AI consulting</p>
+          <button class="btn small" onclick="openConsultModal('Arjun Sharma', 'Senior Data Scientist')">Connect</button>
+        </div>
+        <div class="expert-card">
+          <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Avatar" class="expert-avatar">
+          <h3>Priya Mehta</h3>
+          <p>Business Intelligence Lead, Ex‑McKinsey</p>
+          <p>10+ years in data strategy</p>
+          <button class="btn small" onclick="openConsultModal('Priya Mehta', 'BI Lead')">Connect</button>
+        </div>
+        <div class="expert-card">
+          <img src="https://randomuser.me/api/portraits/men/75.jpg" alt="Avatar" class="expert-avatar">
+          <h3>Rahul Nair</h3>
+          <p>Data Engineering Architect, Ex‑Amazon</p>
+          <p>Expert in cloud & big data</p>
+          <button class="btn small" onclick="openConsultModal('Rahul Nair', 'Data Engineer')">Connect</button>
+        </div>
+        <div class="expert-card">
+          <img src="https://randomuser.me/api/portraits/women/90.jpg" alt="Avatar" class="expert-avatar">
+          <h3>Sneha Joshi</h3>
+          <p>AI & Forecasting Lead, Ex‑Microsoft</p>
+          <p>Time series & deep learning</p>
+          <button class="btn small" onclick="openConsultModal('Sneha Joshi', 'AI Lead')">Connect</button>
+        </div>
       </div>
     </div>
   </main>
@@ -190,8 +259,12 @@
       <span class="close" onclick="closeResumeModal()">&times;</span>
       <h3 id="modalName"></h3>
       <p id="modalScore"></p>
-      <div class="modal-skills"><strong>✅ Matched</strong><div id="modalMatched"></div></div>
-      <div class="modal-skills"><strong>❌ Missing</strong><div id="modalMissing"></div></div>
+      <div class="modal-skills"><strong>✅ Matched</strong>
+        <div id="modalMatched"></div>
+      </div>
+      <div class="modal-skills"><strong>❌ Missing</strong>
+        <div id="modalMissing"></div>
+      </div>
       <div id="modalBreakdown"></div>
     </div>
   </div>
@@ -208,10 +281,16 @@
     </div>
   </div>
 
-  <div class="toast" id="toast"><div><i class="fas fa-check-circle"></i> <span id="toastMsg"></span></div></div>
-  <div class="loader-overlay hidden" id="loader"><div class="spinner"></div><p id="loaderText">Processing...</p></div>
+  <div class="toast" id="toast">
+    <div><i class="fas fa-check-circle"></i> <span id="toastMsg"></span></div>
+  </div>
+  <div class="loader-overlay hidden" id="loader">
+    <div class="spinner"></div>
+    <p id="loaderText">Processing...</p>
+  </div>
 
   <script src="/static/js/app.js"></script>
   <script src="/static/js/resume-analyzer.js"></script>
 </body>
+
 </html>

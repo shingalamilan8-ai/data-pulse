@@ -1,11 +1,3 @@
-"""
-LexaAi v6 — Final Production Version
-- Uses models/gemini-flash-latest consistently
-- No sidebar in data analysis: unified chat + charts layout
-- Fixed resume modal & consultancy page
-- Modern API with better error handling
-"""
-
 import os
 import io
 import json
@@ -30,18 +22,13 @@ from backend.resume_analyzer import analyze_resumes, extract_skills_from_text
 load_dotenv()
 
 app = FastAPI(title="LexaAi", version="6.0")
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 SESSIONS: Dict[str, Dict] = {}
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
 
 # ------------------------------------------------------------------
-# Gemini client (works with both google-genai and google.generativeai)
+# Gemini client (both new and old SDK)
 # ------------------------------------------------------------------
 _gemini_client = None
 
@@ -49,22 +36,17 @@ def get_gemini_model():
     global _gemini_client
     if _gemini_client is not None:
         return _gemini_client
-
     key = os.getenv("GEMINI_API_KEY")
     if not key:
         raise HTTPException(500, "Missing GEMINI_API_KEY in .env")
-
-    # Try new SDK first
     try:
         from google import genai
         client = genai.Client(api_key=key)
         _gemini_client = client
-        print("✅ Using google.genai SDK")
+        print("✅ Using google.genai")
         return client
     except ImportError:
         pass
-
-    # Fallback to old SDK
     try:
         import google.generativeai as genai_old
         genai_old.configure(api_key=key)
@@ -75,16 +57,12 @@ def get_gemini_model():
         raise HTTPException(500, "Install google-genai or google-generativeai")
 
 def generate_gemini_content(prompt: str) -> str:
-    """Generate text using the correct model name."""
     client = get_gemini_model()
-    model_name = "models/gemini-flash-latest"  # definitive name
-
+    model_name = "models/gemini-flash-latest"
     try:
-        # New SDK
         if hasattr(client, "models"):
             response = client.models.generate_content(model=model_name, contents=prompt)
             return response.text
-        # Old SDK
         else:
             model = client.GenerativeModel(model_name)
             response = model.generate_content(prompt)
@@ -108,7 +86,6 @@ def safe_exec_charts(code: str, df: pd.DataFrame):
     return figs, None
 
 def apply_modern_theme(figs):
-    """Professional dark theme with blue/purple accents."""
     for fig in figs:
         fig.update_layout(
             template="plotly_dark",
@@ -145,7 +122,13 @@ def df_profile(df: pd.DataFrame) -> dict:
     nulls = df.isnull().sum()
     cols = []
     for col in df.columns:
-        info = {"name": col, "dtype": str(df[col].dtype), "nulls": int(nulls[col]), "null_pct": round(nulls[col]/len(df)*100,1), "unique": int(df[col].nunique())}
+        info = {
+            "name": col,
+            "dtype": str(df[col].dtype),
+            "nulls": int(nulls[col]),
+            "null_pct": round(nulls[col]/len(df)*100, 1),
+            "unique": int(df[col].nunique())
+        }
         if col in df.select_dtypes("number").columns:
             info["type"] = "numeric"
             info["min"] = float(df[col].min()) if pd.notna(df[col].min()) else None
@@ -168,9 +151,7 @@ def df_profile(df: pd.DataFrame) -> dict:
         "columns": cols,
     }
 
-# ------------------------------------------------------------
-# Data analysis endpoints
-# ------------------------------------------------------------
+
 @app.post("/api/upload")
 async def upload_file(file: UploadFile = File(...)):
     ext = Path(file.filename).suffix.lower()
@@ -197,6 +178,7 @@ async def upload_file(file: UploadFile = File(...)):
         "preview": df.head(8).fillna("").astype(str).to_dict(orient="records"),
         "columns": df.columns.tolist(),
     }
+
 
 @app.post("/api/generate-charts/{session_id}")
 async def generate_charts(session_id: str):
@@ -232,6 +214,43 @@ Include titles and axis labels. Do NOT call .show(). Return ONLY executable Pyth
     charts_json = [json.loads(pio.to_json(f)) for f in figs]
     return {"charts": charts_json, "code": code, "count": len(figs)}
 
+
+class CustomChartRequest(BaseModel):
+    request: str
+
+
+@app.post("/api/custom-chart/{session_id}")
+async def custom_chart(session_id: str, req: CustomChartRequest):
+    if session_id not in SESSIONS:
+        raise HTTPException(404, "Session not found")
+    sess = SESSIONS[session_id]
+    df = sess["df"]
+    col_info = "\n".join(f"{c} ({t})" for c, t in df.dtypes.items())
+    sample = df.head(8).to_string()
+    prompt = f"""Dataset columns: {col_info}
+Sample rows:
+{sample}
+User request: {req.request}
+Create exactly ONE Plotly Express chart fulfilling the request. Use template='plotly_dark'.
+Return ONLY executable Python code as 'fig' variable.
+"""
+    try:
+        code = generate_gemini_content(prompt)
+        code = strip_fences(code)
+        if "fig" not in code:
+            code = "fig = " + code
+        figs, err = safe_exec_charts(code, df)
+        if err or not figs:
+            raise HTTPException(400, f"Chart generation failed: {err}")
+        figs = apply_modern_theme(figs)
+        sess["figs"].extend(figs)
+        sess["code"] += f"\n\n# Custom chart: {req.request}\n" + code
+        charts_json = [json.loads(pio.to_json(f)) for f in figs]
+        return {"charts": charts_json, "code": code, "count": len(figs)}
+    except Exception as e:
+        raise HTTPException(500, str(e))
+
+
 @app.post("/api/generate-insights/{session_id}")
 async def generate_insights(session_id: str):
     if session_id not in SESSIONS:
@@ -247,28 +266,60 @@ Use markdown."""
     sess["insights"] = insights
     return {"insights": insights}
 
+
 class ChatRequest(BaseModel):
     query: str
 
+
 @app.post("/api/chat/{session_id}")
-async def chat(session_id: str, req: ChatRequest):
+async def chat_with_data(session_id: str, req: ChatRequest):
     if session_id not in SESSIONS:
         raise HTTPException(404, "Session not found")
     sess = SESSIONS[session_id]
     df = sess["df"]
-    hist = sess.get("chat_history", [])[-6:]
-    hist_text = "\n".join(f"{m['role']}: {m['content']}" for m in hist)
-    col_info = ", ".join(df.columns.tolist())
-    prompt = f"""You are a data analyst. Columns: {col_info}
-Stats: {df.describe().to_string()}
-Previous chat:
-{hist_text}
+
+    # Detect if user wants a chart
+    detect_prompt = f"""Does the user want you to CREATE or GENERATE a new chart? Answer only "YES" or "NO".
+User query: {req.query}"""
+    try:
+        detect = generate_gemini_content(detect_prompt).strip().upper()
+        wants_chart = "YES" in detect
+    except:
+        wants_chart = False
+
+    if wants_chart:
+        try:
+            # Generate chart via custom endpoint
+            chart_resp = await custom_chart(session_id, CustomChartRequest(request=req.query))
+            return {
+                "answer": f"I've generated {chart_resp['count']} chart(s) based on your request. They have been added below.",
+                "new_charts": chart_resp["charts"],
+                "is_chart_response": True,
+                "code": chart_resp.get("code", "")
+            }
+        except Exception as e:
+            return {
+                "answer": f"Sorry, I couldn't create a chart: {str(e)}. Please try a different request.",
+                "new_charts": [],
+                "is_chart_response": False
+            }
+    else:
+        # Normal chat
+        col_info = ", ".join(df.columns.tolist())
+        stats = df.describe().to_string()
+        hist = sess.get("chat_history", [])[-4:]
+        conv = "\n".join(f"{m['role']}: {m['content']}" for m in hist)
+        prompt = f"""Dataset columns: {col_info}
+Stats: {stats}
+Previous conversation:
+{conv}
 User: {req.query}
-Answer concisely, with bullet points if useful."""
-    answer = generate_gemini_content(prompt)
-    sess["chat_history"].append({"role": "user", "content": req.query})
-    sess["chat_history"].append({"role": "assistant", "content": answer})
-    return {"answer": answer, "history": sess["chat_history"]}
+Answer concisely, using bullet points if helpful."""
+        answer = generate_gemini_content(prompt)
+        sess["chat_history"].append({"role": "user", "content": req.query})
+        sess["chat_history"].append({"role": "assistant", "content": answer})
+        return {"answer": answer, "new_charts": [], "is_chart_response": False}
+
 
 @app.get("/api/profile/{session_id}")
 async def profile(session_id: str):
@@ -277,6 +328,7 @@ async def profile(session_id: str):
     df = SESSIONS[session_id]["df"]
     return {"profile": df_profile(df), "preview": df.head(10).fillna("").to_dict(orient="records")}
 
+
 @app.get("/api/export-csv/{session_id}")
 async def export_csv(session_id: str):
     if session_id not in SESSIONS:
@@ -284,7 +336,9 @@ async def export_csv(session_id: str):
     buf = io.StringIO()
     SESSIONS[session_id]["df"].to_csv(buf, index=False)
     buf.seek(0)
-    return StreamingResponse(iter([buf.getvalue()]), media_type="text/csv", headers={"Content-Disposition": "attachment; filename=data.csv"})
+    return StreamingResponse(iter([buf.getvalue()]), media_type="text/csv",
+                             headers={"Content-Disposition": "attachment; filename=data.csv"})
+
 
 @app.get("/api/suggest-questions/{session_id}")
 async def suggest_questions(session_id: str):
@@ -299,9 +353,10 @@ async def suggest_questions(session_id: str):
     except:
         return {"questions": ["What are the top trends?", "Any missing values?", "What is the average of numeric columns?", "Which category appears most?", "Any outliers?"]}
 
-# ------------------------------------------------------------
-# Resume endpoints (same as before, but ensure modal works)
-# ------------------------------------------------------------
+
+# ------------------------------------------------------------------
+# Resume endpoints
+# ------------------------------------------------------------------
 @app.post("/api/resumes/analyze")
 async def analyze_resumes_endpoint(
     skills: str = Form(...),
@@ -316,7 +371,6 @@ async def analyze_resumes_endpoint(
                 required_skills.append(s)
     resume_files = [(rf.filename, await rf.read()) for rf in resumes]
     results = analyze_resumes(resume_files, required_skills)
-    # add recommendations
     for r in results:
         score = r["ats_score"]
         if score >= 8:
@@ -327,7 +381,6 @@ async def analyze_resumes_endpoint(
             r["recommendation"] = "Maybe"
         else:
             r["recommendation"] = "Pass"
-    # summary
     avg = sum(r["ats_score"] for r in results) / len(results) if results else 0
     summary = {
         "total_resumes": len(results),
@@ -338,6 +391,22 @@ async def analyze_resumes_endpoint(
         "low_score_count": sum(1 for r in results if r["ats_score"] < 4),
     }
     return {"results": results, "summary": summary}
+
+
+@app.post("/api/resumes/save/{session_id}")
+async def save_resume_results(session_id: str, data: Dict):
+    if session_id not in SESSIONS:
+        SESSIONS[session_id] = {}
+    SESSIONS[session_id]["resume_results"] = data.get("results", [])
+    return {"ok": True}
+
+
+@app.get("/api/resumes/results/{session_id}")
+async def get_resume_results(session_id: str):
+    if session_id not in SESSIONS:
+        return {"results": []}
+    return {"results": SESSIONS[session_id].get("resume_results", [])}
+
 
 @app.get("/api/resumes/export-csv/{session_id}")
 async def resume_export_csv(session_id: str):
@@ -351,25 +420,20 @@ async def resume_export_csv(session_id: str):
     for i, r in enumerate(results, 1):
         writer.writerow([i, r["filename"], r["ats_score"], len(r.get("matched_skills",[])), len(r.get("missing_skills",[])), r.get("recommendation","")])
     buf.seek(0)
-    return StreamingResponse(iter([buf.getvalue()]), media_type="text/csv", headers={"Content-Disposition": "attachment; filename=resumes.csv"})
+    return StreamingResponse(iter([buf.getvalue()]), media_type="text/csv",
+                             headers={"Content-Disposition": "attachment; filename=resumes.csv"})
 
-@app.post("/api/resumes/save/{session_id}")
-async def save_resume_results(session_id: str, data: Dict):
-    if session_id not in SESSIONS:
-        SESSIONS[session_id] = {}
-    SESSIONS[session_id]["resume_results"] = data.get("results", [])
-    return {"ok": True}
 
-@app.get("/api/resumes/results/{session_id}")
-async def get_resume_results(session_id: str):
-    if session_id not in SESSIONS:
-        return {"results": []}
-    return {"results": SESSIONS[session_id].get("resume_results", [])}
-
-# ------------------------------------------------------------
+# ------------------------------------------------------------------
 # Static files & SPA fallback
-# ------------------------------------------------------------
-app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR / "static")), name="static")
+# ------------------------------------------------------------------
+static_dir = FRONTEND_DIR / "static"
+static_dir.mkdir(parents=True, exist_ok=True)
+(static_dir / "css").mkdir(exist_ok=True)
+(static_dir / "js").mkdir(exist_ok=True)
+app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
+
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):
     index = FRONTEND_DIR / "index.html"
