@@ -1,660 +1,217 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LexaAi — Intelligent Data & Resume Platform</title>
-  
-  <!-- SEO Meta Tags -->
-  <meta name="description" content="LexaAi - AI-powered data analysis and resume screening platform. Upload CSV/Excel files for instant charts, insights, and AI chat. Screen resumes against job requirements with ATS scoring."/>
-  <meta name="keywords" content="AI data analysis, resume screener, ATS score, CSV analysis, Excel charts, AI insights, Gemini AI, job screening, resume parser"/>
-  <meta name="author" content="LexaAi"/>
-  <meta name="robots" content="index, follow"/>
-  <meta property="og:title" content="LexaAi — Intelligent Data & Resume Platform"/>
-  <meta property="og:description" content="AI-powered data analysis and resume screening. Upload data, get instant charts and insights."/>
-  <meta property="og:type" content="website"/>
-  <meta name="twitter:card" content="summary_large_image"/>
-  <link rel="canonical" href="https://lexaai.com"/>
-  
-  <link rel="stylesheet" href="/static/css/style.css"/>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LexaAi – AI Data & Resume Suite</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
 </head>
 <body>
 
-<!-- PARTICLE CANVAS (live animated background) -->
-<canvas id="particleCanvas"></canvas>
-
-<!-- ═══ NAVBAR ═══ -->
-<nav class="navbar" id="navbar">
-  <div class="nav-brand" onclick="navigateTo('home')">
-    <div class="brand-mark"><i class="fas fa-brain"></i></div>
-    <span class="brand-wordmark">Lexa<span class="accent">Ai</span></span>
-  </div>
-  <ul class="nav-links">
-    <li><a href="#" class="nav-link active" data-page="home">Home</a></li>
-    <li><a href="#" class="nav-link" data-page="dashboard">Data Analysis</a></li>
-    <li><a href="#" class="nav-link" data-page="resume">Resume Screener</a></li>
-    <li><a href="#" class="nav-link" data-page="services">Services</a></li>
-    <li><a href="#" class="nav-link" data-page="consultancy">Consultancy</a></li>
-  </ul>
-  <div class="nav-right">
-    <button class="nav-cta" onclick="navigateTo('dashboard')"><i class="fas fa-rocket"></i> Launch App</button>
-    <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
-  </div>
-</nav>
-
-<div class="mobile-menu" id="mobileMenu">
-  <a href="#" class="mob-link" data-page="home">Home</a>
-  <a href="#" class="mob-link" data-page="dashboard">Data Analysis</a>
-  <a href="#" class="mob-link" data-page="resume">Resume Screener</a>
-  <a href="#" class="mob-link" data-page="services">Services</a>
-  <a href="#" class="mob-link" data-page="consultancy">Consultancy</a>
-</div>
-
-<!-- ═══════════════════════════════════════════════════
-     PAGE: HOME
-════════════════════════════════════════════════════ -->
-<div class="page active" id="page-home">
-
-  <section class="hero">
-    <div class="hero-bg-grid"></div>
-    <div class="hero-content">
-      <div class="hero-eyebrow"><span class="eyebrow-dot"></span>AI-Powered Analytics Platform v5.0</div>
-      <h1 class="hero-title">Turn Raw Data Into<br/><em>Actionable Insights.</em></h1>
-      <p class="hero-sub">Upload CSV/Excel for instant AI charts and insights. Screen hundreds of resumes with intelligent ATS scoring. One platform, powered by Google Gemini.</p>
-      <div class="hero-actions">
-        <button class="btn-primary large" onclick="navigateTo('dashboard')"><i class="fas fa-chart-bar"></i> Analyze Data</button>
-        <button class="btn-outline large" onclick="navigateTo('resume')"><i class="fas fa-file-alt"></i> Screen Resumes</button>
-      </div>
-      <div class="hero-stats">
-        <div class="hstat"><span class="hstat-val" id="ctr1">0</span><span class="hstat-lbl">Datasets Analyzed</span></div>
-        <div class="hstat-div"></div>
-        <div class="hstat"><span class="hstat-val" id="ctr2">0</span><span class="hstat-lbl">Resumes Screened</span></div>
-        <div class="hstat-div"></div>
-        <div class="hstat"><span class="hstat-val" id="ctr3">0%</span><span class="hstat-lbl">Accuracy Rate</span></div>
-      </div>
+  <!-- Navigation bar (minimal) -->
+  <nav class="navbar">
+    <div class="logo" onclick="navigateTo('home')">
+      <i class="fas fa-brain"></i> Lexa<span>Ai</span>
     </div>
-    <div class="hero-visual">
-      <div class="hero-orb"></div>
-      <!-- Floating cards -->
-      <div class="fcard fc1">
-        <div class="mini-bars"><div class="mb" style="--h:40%"></div><div class="mb" style="--h:65%"></div><div class="mb" style="--h:50%"></div><div class="mb active" style="--h:90%"></div><div class="mb" style="--h:75%"></div></div>
-        <div class="fcard-label">Revenue Trend</div>
-        <span class="fcard-badge up"><i class="fas fa-arrow-up"></i> 24.5%</span>
-      </div>
-      <div class="fcard fc2">
-        <div class="ats-ring-mini">
-          <svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="none" stroke="rgba(59,130,246,.15)" stroke-width="7"/><circle cx="30" cy="30" r="22" fill="none" stroke="#3b82f6" stroke-width="7" stroke-dasharray="97 139" stroke-linecap="round" transform="rotate(-90 30 30)"/></svg>
-          <span>8.7</span>
-        </div>
-        <div class="fcard-ats-info"><div class="fcard-name">Priya S.</div><div class="fcard-rec">Recommended</div></div>
-      </div>
-      <div class="fcard fc3">
-        <i class="fas fa-bolt fcard-bolt"></i>
-        <div><div class="fcard-title">AI Detected</div><div class="fcard-sub">5 chart types ready</div></div>
-      </div>
-      <div class="fcard fc4">
-        <div class="skill-chips"><span class="sc match"><i class="fas fa-check"></i> Python</span><span class="sc match"><i class="fas fa-check"></i> AWS</span><span class="sc miss"><i class="fas fa-times"></i> Docker</span></div>
-        <div class="fcard-label" style="margin-top:.5rem">Skills Matched</div>
-      </div>
+    <div class="nav-links">
+      <a href="#" data-page="home">Home</a>
+      <a href="#" data-page="dashboard">AI Studio</a>
+      <a href="#" data-page="resume">Resume Screener</a>
+      <a href="#" data-page="services">Services</a>
+      <a href="#" data-page="consultancy">Consultancy</a>
     </div>
-  </section>
+    <button class="mobile-toggle" id="mobileToggle"><i class="fas fa-bars"></i></button>
+  </nav>
 
-  <!-- HOW IT WORKS -->
-  <section class="section bg-dark">
-    <div class="section-eyebrow">How It Works</div>
-    <h2 class="section-title">Two Powerful Tools, One Platform</h2>
-    <div class="how-grid">
-      <div class="how-col">
-        <div class="how-col-header"><span class="how-num">01</span><span class="how-tag">Data Analysis</span></div>
-        <div class="steps-row">
-          <div class="step-box"><div class="step-ico"><i class="fas fa-upload"></i></div><h4>Upload File</h4><p>Drag & drop CSV or Excel.</p></div>
-          <div class="step-arr"><i class="fas fa-chevron-right"></i></div>
-          <div class="step-box"><div class="step-ico"><i class="fas fa-brain"></i></div><h4>AI Analyses</h4><p>Gemini selects best charts.</p></div>
-          <div class="step-arr"><i class="fas fa-chevron-right"></i></div>
-          <div class="step-box"><div class="step-ico"><i class="fas fa-chart-line"></i></div><h4>Explore</h4><p>Chat, insights, export PDF.</p></div>
-        </div>
-      </div>
-      <div class="how-divider"></div>
-      <div class="how-col">
-        <div class="how-col-header"><span class="how-num">02</span><span class="how-tag ats-tag">Resume Screener</span></div>
-        <div class="steps-row">
-          <div class="step-box"><div class="step-ico"><i class="fas fa-list-check"></i></div><h4>Set Skills</h4><p>Enter required skills for role.</p></div>
-          <div class="step-arr"><i class="fas fa-chevron-right"></i></div>
-          <div class="step-box"><div class="step-ico"><i class="fas fa-files"></i></div><h4>Upload Resumes</h4><p>Batch PDF/DOCX upload.</p></div>
-          <div class="step-arr"><i class="fas fa-chevron-right"></i></div>
-          <div class="step-box"><div class="step-ico"><i class="fas fa-sort-amount-down"></i></div><h4>Get Scores</h4><p>Ranked ATS scores 0–10.</p></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- FEATURES -->
-  <section class="section bg-card">
-    <div class="section-eyebrow">Features</div>
-    <h2 class="section-title">Everything You Need</h2>
-    <div class="feat-grid">
-      <div class="feat-card"><div class="feat-ico" style="--c:#3b82f6"><i class="fas fa-magic"></i></div><h3>Auto Chart Detection</h3><p>Gemini picks bar, line, scatter, pie, heatmap automatically based on your data structure.</p></div>
-      <div class="feat-card fc-wide"><div class="feat-ico" style="--c:#8b5cf6"><i class="fas fa-file-alt"></i></div><h3>Intelligent ATS Resume Screening</h3><p>Score multiple resumes out of 10 against required skills. Get ranked candidates with matched/missing skills, experience scoring, and recommendation labels — in seconds.</p><div class="feat-badges"><span>PDF</span><span>DOCX</span><span>TXT</span></div></div>
-      <div class="feat-card"><div class="feat-ico" style="--c:#06b6d4"><i class="fas fa-comments"></i></div><h3>AI Data Chat</h3><p>Ask natural language questions about your dataset and get instant Gemini-powered answers.</p></div>
-      <div class="feat-card"><div class="feat-ico" style="--c:#10b981"><i class="fas fa-file-pdf"></i></div><h3>PDF Reports</h3><p>Export professional AI insight reports and ATS screening summaries as formatted PDFs.</p></div>
-      <div class="feat-card fc-wide"><div class="feat-ico" style="--c:#f59e0b"><i class="fas fa-layer-group"></i></div><h3>Multi-Format Support</h3><p>Works with CSV, XLSX, XLS for data analysis. Accepts PDF, DOCX, TXT resumes for screening. No coding required.</p><div class="feat-badges"><span>.csv</span><span>.xlsx</span><span>.pdf</span><span>.docx</span></div></div>
-      <div class="feat-card"><div class="feat-ico" style="--c:#ef4444"><i class="fas fa-shield-alt"></i></div><h3>Secure & Private</h3><p>Everything processes in your local session. No permanent data storage on any server.</p></div>
-    </div>
-  </section>
-
-  <!-- LIVE DEMO STRIP -->
-  <section class="demo-strip">
-    <div class="demo-strip-content">
-      <div class="demo-left">
-        <div class="section-eyebrow" style="color:rgba(255,255,255,.6)">Live ATS Demo</div>
-        <h2>See Results in Real Time</h2>
-        <p>Watch how LexaAi scores and ranks candidates instantly as they're analyzed.</p>
-        <button class="btn-outline-white" onclick="navigateTo('resume')"><i class="fas fa-play"></i> Try Resume Screener</button>
-      </div>
-      <div class="demo-right">
-        <div class="demo-card">
-          <div class="demo-card-header"><i class="fas fa-chart-bar"></i> ATS Screening Results</div>
-          <div class="demo-rows" id="demoRows">
-            <div class="demo-row"><span class="demo-rank">1</span><span class="demo-name">Arjun M.</span><div class="demo-bar-wrap"><div class="demo-bar" style="--w:92%"></div></div><span class="demo-score">9.2</span><span class="demo-badge hire">Hire</span></div>
-            <div class="demo-row"><span class="demo-rank">2</span><span class="demo-name">Priya S.</span><div class="demo-bar-wrap"><div class="demo-bar" style="--w:84%"></div></div><span class="demo-score">8.4</span><span class="demo-badge consider">Consider</span></div>
-            <div class="demo-row"><span class="demo-rank">3</span><span class="demo-name">Rahul K.</span><div class="demo-bar-wrap"><div class="demo-bar" style="--w:71%"></div></div><span class="demo-score">7.1</span><span class="demo-badge consider">Consider</span></div>
-            <div class="demo-row"><span class="demo-rank">4</span><span class="demo-name">Sneha J.</span><div class="demo-bar-wrap"><div class="demo-bar" style="--w:58%"></div></div><span class="demo-score">5.8</span><span class="demo-badge maybe">Maybe</span></div>
-            <div class="demo-row"><span class="demo-rank">5</span><span class="demo-name">Vikram P.</span><div class="demo-bar-wrap"><div class="demo-bar" style="--w:34%"></div></div><span class="demo-score">3.4</span><span class="demo-badge reject">Pass</span></div>
+  <!-- Pages container -->
+  <main class="pages">
+    <!-- Home page -->
+    <div class="page active" id="page-home">
+      <section class="hero">
+        <div class="hero-content">
+          <h1>Turn data into <span class="gradient">insights</span> and resumes into <span class="gradient">hires</span></h1>
+          <p>Upload CSV/Excel for instant AI charts and chat. Screen hundreds of resumes with intelligent ATS scoring. Powered by Gemini.</p>
+          <div class="hero-buttons">
+            <button class="btn primary" onclick="navigateTo('dashboard')">Start Analyzing <i class="fas fa-arrow-right"></i></button>
+            <button class="btn secondary" onclick="navigateTo('resume')">Screen Resumes <i class="fas fa-file-alt"></i></button>
           </div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CTA -->
-  <section class="cta-strip">
-    <div class="cta-content">
-      <h2>Ready to Work Smarter with Data?</h2>
-      <p>No signup. No credit card. Start analyzing in seconds.</p>
-      <div class="cta-btns">
-        <button class="btn-primary large" onclick="navigateTo('dashboard')"><i class="fas fa-chart-bar"></i> Analyze Data Free</button>
-        <button class="btn-outline-white large" onclick="navigateTo('resume')"><i class="fas fa-file-alt"></i> Screen Resumes Free</button>
-      </div>
-    </div>
-  </section>
-
-  <footer class="footer">
-    <div class="footer-brand"><div class="brand-mark sm"><i class="fas fa-brain"></i></div><span class="brand-wordmark">Lexa<span class="accent">Ai</span></span></div>
-    <p class="footer-copy">© 2026 LexaAi — Built for analysts &amp; recruiters.</p>
-    <div class="footer-links"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Contact</a></div>
-  </footer>
-</div>
-
-
-<!-- ═══════════════════════════════════════════════════
-     PAGE: DASHBOARD (Data Analysis)
-════════════════════════════════════════════════════ -->
-<div class="page" id="page-dashboard">
-  <div class="dash-layout">
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-      <div class="sidebar-head">
-        <div class="sidebar-logo"><div class="brand-mark sm"><i class="fas fa-brain"></i></div><span class="brand-wordmark sm">Lexa<span class="accent">Ai</span></span></div>
-        <div class="sidebar-file" id="sidebarFile" style="display:none">
-          <div class="sf-name" id="sfName">—</div>
-          <div class="sf-meta" id="sfMeta">—</div>
+        <div class="hero-stats">
+          <div><span id="stat1">0</span> datasets analyzed</div>
+          <div><span id="stat2">0</span> resumes screened</div>
+          <div><span id="stat3">0%</span> accuracy</div>
         </div>
-      </div>
-      <nav class="sidebar-nav">
-        <button class="sitem active" data-dash="upload"><i class="fas fa-upload"></i><span>Upload Data</span></button>
-        <button class="sitem" data-dash="charts"><i class="fas fa-chart-bar"></i><span>Charts</span></button>
-        <button class="sitem" data-dash="analysis"><i class="fas fa-comments"></i><span>AI Analysis</span></button>
-        <button class="sitem" data-dash="summary"><i class="fas fa-table"></i><span>Data Summary</span></button>
-        <button class="sitem" data-dash="export"><i class="fas fa-download"></i><span>Export</span></button>
-      </nav>
-      <div class="sidebar-foot">
-        <button class="sitem" onclick="navigateTo('resume')"><i class="fas fa-file-alt"></i><span>Resume Screener</span></button>
-        <button class="sitem" onclick="navigateTo('home')"><i class="fas fa-home"></i><span>Home</span></button>
-      </div>
-    </aside>
-
-    <!-- MAIN -->
-    <main class="dash-main">
-      <div class="dash-topbar">
-        <div><h2 class="dash-title" id="dashTitle">Upload Your Dataset</h2><p class="dash-sub" id="dashSub">CSV or Excel — we'll handle the rest</p></div>
-        <div class="topbar-right">
-          <div class="status-pill" id="statusPill"><span class="sdot idle" id="sdot"></span><span id="statusText">No file loaded</span></div>
-        </div>
-      </div>
-
-      <!-- UPLOAD PANEL -->
-      <div class="dash-panel active" id="panel-upload">
-        <div class="upload-zone" id="uploadZone">
-          <div class="uz-icon"><i class="fas fa-cloud-upload-alt"></i></div>
-          <h3>Drag &amp; Drop your dataset here</h3>
-          <p>Supports CSV, XLSX, XLS — up to 50 MB</p>
-          <label class="btn-primary upload-lbl" for="fileInput"><i class="fas fa-folder-open"></i> Browse Files</label>
-          <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" hidden/>
-        </div>
-        <div class="upload-ready hidden" id="uploadReady">
-          <div class="file-card">
-            <div class="fc-icon"><i class="fas fa-file-csv"></i></div>
-            <div class="fc-info"><div class="fc-name" id="fileName">—</div><div class="fc-meta" id="fileMeta">—</div></div>
-            <div class="fc-ok"><i class="fas fa-check-circle"></i> Ready</div>
-          </div>
-          <button class="btn-primary large w100" id="analyzeBtn"><i class="fas fa-magic"></i> Generate AI Analysis &amp; Charts</button>
-        </div>
-        <div class="upload-tips">
-          <div class="utip"><i class="fas fa-info-circle"></i> Column headers should be in the first row</div>
-          <div class="utip"><i class="fas fa-info-circle"></i> Numeric columns generate quantitative charts</div>
-          <div class="utip"><i class="fas fa-info-circle"></i> Date columns enable time-series analysis</div>
-        </div>
-      </div>
-
-      <!-- CHARTS PANEL -->
-      <div class="dash-panel" id="panel-charts">
-        <div class="no-data-cta" id="noChartMsg"><i class="fas fa-chart-bar"></i><p>No charts yet — upload a file and click Generate.</p><button class="btn-primary" onclick="switchDash('upload')">Upload File</button></div>
-        <div class="charts-wrap hidden" id="chartsWrap">
-          <div class="chart-toolbar">
-            <div class="ct-left">
-              <label>Filter:</label>
-              <select id="chartTypeFilter" class="dash-select">
-                <option value="all">All Charts</option>
-                <option value="bar">Bar</option>
-                <option value="scatter">Scatter</option>
-                <option value="pie">Pie</option>
-                <option value="heatmap">Heatmap</option>
-                <option value="line">Line</option>
-              </select>
-            </div>
-            <span class="chart-count" id="chartCount"></span>
-            <button class="btn-outline small" onclick="regenerateCharts()"><i class="fas fa-redo"></i> Regenerate</button>
-          </div>
-          
-          <!-- Custom Chart Request -->
-          <div class="custom-chart-request">
-            <div class="ccr-header">
-              <i class="fas fa-wand-magic-sparkles"></i>
-              <span>Request Custom Chart</span>
-            </div>
-            <div class="ccr-form">
-              <input type="text" id="customChartInput" class="chat-inp" placeholder="e.g., 'Show sales by region as a bar chart' or 'Create a pie chart of categories'"/>
-              <button class="btn-primary small" onclick="requestCustomChart()"><i class="fas fa-plus"></i> Generate</button>
-            </div>
-          </div>
-          
-          <div class="charts-list" id="chartsGrid"></div>
-          
-          <div class="code-section">
-            <div class="code-toggle" onclick="toggleCode()">
-              <span><i class="fas fa-code"></i> View Generated Python Code</span>
-              <i class="fas fa-chevron-down" id="codeChevron"></i>
-            </div>
-            <pre class="code-pre hidden" id="codeBlock"><code id="codeContent"></code></pre>
-          </div>
-        </div>
-      </div>
-
-      <!-- UNIFIED ANALYSIS PANEL (Chat + Insights) -->
-      <div class="dash-panel" id="panel-analysis">
-        <div class="no-data-cta" id="noAnalysisMsg"><i class="fas fa-comments"></i><p>Upload a file to start analyzing. Ask questions or generate insights.</p><button class="btn-primary" onclick="switchDash('upload')">Upload File</button></div>
-        <div class="analysis-wrap hidden" id="analysisWrap">
-          <!-- Analysis Tabs -->
-          <div class="analysis-tabs">
-            <button class="analysis-tab active" data-tab="chat" onclick="switchAnalysisTab('chat')">
-              <i class="fas fa-comments"></i> AI Chat
-            </button>
-            <button class="analysis-tab" data-tab="insights" onclick="switchAnalysisTab('insights')">
-              <i class="fas fa-lightbulb"></i> AI Insights
-            </button>
-          </div>
-          
-          <!-- Chat Section -->
-          <div class="analysis-content active" id="analysisChat">
-            <div class="chat-shell">
-              <div class="chat-msgs" id="chatMessages">
-                <div class="chat-row">
-                  <div class="chat-av bot"><i class="fas fa-robot"></i></div>
-                  <div class="chat-bub bot">
-                    <p>👋 Hi! I'm your <strong>Data Analysis AI</strong>. Upload a dataset and ask me anything!</p>
-                    <p style="margin-top:8px;opacity:.7;font-size:.85rem">Try: "Summarize the data", "Find outliers", "What trends do you see?"</p>
-                  </div>
-                </div>
-              </div>
-              <div class="chat-foot">
-                <div class="chat-input-bar">
-                  <input type="text" id="chatInput" class="chat-inp" placeholder="Ask anything about your data…"/>
-                  <button class="chat-send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
-                </div>
-                <div class="chat-chips" id="chatSuggestions">
-                  <button class="chip" onclick="sendSuggestion('Summarize the dataset')">Summarize</button>
-                  <button class="chip" onclick="sendSuggestion('Which columns have missing data?')">Missing data</button>
-                  <button class="chip" onclick="sendSuggestion('Find outliers in the data')">Find outliers</button>
-                  <button class="chip" onclick="sendSuggestion('What key trends do you see?')">Trends</button>
-                  <button class="chip ai-chip" id="suggestAiBtn" onclick="loadAISuggestions()"><i class="fas fa-magic"></i> AI Questions</button>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Insights Section -->
-          <div class="analysis-content" id="analysisInsights">
-            <div class="insights-toolbar">
-              <button class="btn-primary" id="genInsightsBtn" onclick="generateInsights()"><i class="fas fa-magic"></i> Generate Insights</button>
-              <button class="btn-outline" onclick="switchDash('export')"><i class="fas fa-file-pdf"></i> Export as PDF</button>
-            </div>
-            <div class="insight-body" id="insightContent">
-              <div class="insight-placeholder"><i class="fas fa-lightbulb"></i><p>Click "Generate Insights" to get AI-powered analysis of your data and charts.</p></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- SUMMARY PANEL -->
-      <div class="dash-panel" id="panel-summary">
-        <div class="no-data-cta" id="noSummaryMsg"><i class="fas fa-table"></i><p>Upload a dataset to view its summary and column profiles.</p><button class="btn-primary" onclick="switchDash('upload')">Upload File</button></div>
-        <div class="summary-wrap hidden" id="summaryWrap">
-          <div class="stat-cards" id="summaryCards"></div>
-          <div class="data-section"><h3 class="ds-title">Column Profiles <span id="rowCount"></span></h3><div class="table-scroll"><table class="dtable" id="dataTable"></table></div></div>
-          <div class="data-section" style="margin-top:1.5rem"><h3 class="ds-title">Raw Data Preview <span>(first 8 rows)</span></h3><div class="table-scroll"><table class="dtable" id="previewTable"></table></div></div>
-        </div>
-      </div>
-
-      <!-- EXPORT PANEL -->
-      <div class="dash-panel" id="panel-export">
-        <div class="export-grid">
-          <div class="exp-card"><div class="exp-ico"><i class="fas fa-file-pdf"></i></div><h3>Insights Report PDF</h3><p>AI-generated analysis formatted as a professional PDF document.</p><button class="btn-primary w100" id="exportPdfBtn" onclick="exportPDF()"><i class="fas fa-download"></i> Download PDF</button></div>
-          <div class="exp-card"><div class="exp-ico"><i class="fas fa-file-csv"></i></div><h3>Cleaned Dataset CSV</h3><p>Export your processed dataset as a clean CSV file for other tools.</p><button class="btn-primary w100" id="exportCsvBtn" onclick="exportCSV()"><i class="fas fa-download"></i> Download CSV</button></div>
-        </div>
-        <div id="expSummary" style="display:none;margin-top:2rem">
-          <div class="section-eyebrow">Session Summary</div>
-          <div class="stat-cards" id="exportSummaryCards"></div>
-        </div>
-      </div>
-    </main>
-  </div>
-</div>
-
-
-<!-- ═══════════════════════════════════════════════════
-     PAGE: RESUME SCREENER (Enhanced)
-════════════════════════════════════════════════════ -->
-<div class="page" id="page-resume">
-  <div class="resume-page-layout">
-
-    <!-- Hero header -->
-    <div class="resume-hero">
-      <div class="resume-hero-content">
-        <div class="hero-eyebrow" style="background:rgba(59,130,246,.15);border-color:rgba(59,130,246,.3);color:#60a5fa"><span class="eyebrow-dot" style="background:#60a5fa"></span>AI Resume Screener</div>
-        <h1 class="resume-hero-title">Screen Hundreds of Resumes in <em>Seconds.</em></h1>
-        <p class="resume-hero-sub">Define required skills, upload multiple PDFs or DOCX files, and get AI-powered ATS scores with ranked candidates — no manual reading required.</p>
-      </div>
-      <div class="resume-hero-demo">
-        <div class="rdemo-card">
-          <div class="rdemo-header"><i class="fas fa-chart-bar"></i> Live Ranking Preview</div>
-          <div class="rdemo-rows">
-            <div class="rdemo-row"><span class="rdemo-rank">1</span><span class="rdemo-name">Arjun M.</span><div class="rdemo-bar"><div style="width:92%"></div></div><span class="rdemo-score">9.2</span></div>
-            <div class="rdemo-row"><span class="rdemo-rank">2</span><span class="rdemo-name">Priya S.</span><div class="rdemo-bar"><div style="width:84%"></div></div><span class="rdemo-score">8.4</span></div>
-            <div class="rdemo-row"><span class="rdemo-rank">3</span><span class="rdemo-name">Rahul K.</span><div class="rdemo-bar"><div style="width:71%"></div></div><span class="rdemo-score">7.1</span></div>
-            <div class="rdemo-row"><span class="rdemo-rank">4</span><span class="rdemo-name">Sneha J.</span><div class="rdemo-bar"><div style="width:58%"></div></div><span class="rdemo-score">5.8</span></div>
-            <div class="rdemo-row"><span class="rdemo-rank">5</span><span class="rdemo-name">Vikram P.</span><div class="rdemo-bar"><div style="width:34%"></div></div><span class="rdemo-score">3.4</span></div>
-          </div>
-        </div>
-      </div>
+      </section>
     </div>
 
-    <!-- Body: setup left + results right -->
-    <div class="resume-body">
-
-      <!-- LEFT: Setup -->
-      <div class="resume-setup">
-
-        <!-- Step 1: Skills -->
-        <div class="rcard">
-          <div class="rcard-title"><i class="fas fa-list-check"></i> Step 1 — Required Skills</div>
-          <div class="form-grp">
-            <label>Skills <span class="req">*</span></label>
-            <div class="skills-box" id="skillsBox">
-              <div class="skills-tags" id="skillsTags"></div>
-              <input type="text" id="skillInput" class="skills-inp" placeholder="Type skill, press Enter…"/>
-            </div>
-            <div class="quick-skills">
-              <span class="qs-label">Quick add:</span>
-              <button class="qs-btn" onclick="addPresetSkills(['Python','SQL','Machine Learning','Pandas','NumPy'])">Data Science</button>
-              <button class="qs-btn" onclick="addPresetSkills(['React','JavaScript','TypeScript','CSS','HTML'])">Frontend</button>
-              <button class="qs-btn" onclick="addPresetSkills(['Node.js','Python','REST API','Docker','AWS'])">Backend</button>
-              <button class="qs-btn" onclick="addPresetSkills(['AWS','Docker','Kubernetes','Terraform','CI/CD'])">DevOps</button>
-              <button class="qs-btn" onclick="addPresetSkills(['Java','Spring Boot','Microservices','SQL','Git'])">Java Dev</button>
-              <button class="qs-btn" onclick="addPresetSkills(['Excel','Power BI','Tableau','SQL','Data Visualization'])">Analyst</button>
-            </div>
-          </div>
-          <div class="form-grp">
-            <label>Job Description <span class="lbl-opt">(optional — auto-extracts skills)</span></label>
-            <textarea id="jobDesc" rows="4" class="form-textarea" placeholder="Paste the job description here. LexaAi will automatically extract relevant skills and add them to your required skills list..."></textarea>
-          </div>
-          <div class="form-grp">
-            <label>Minimum Score Filter: <strong id="minScoreVal">Show All</strong></label>
-            <input type="range" id="minScore" min="0" max="9.5" step="0.5" value="0" class="score-range"/>
-          </div>
-          <button class="btn-outline w100" onclick="clearAllData()" style="margin-top: 0.5rem;"><i class="fas fa-trash"></i> Clear All Data</button>
+    <!-- Dashboard (Data Analysis) – no sidebar, unified interface -->
+    <div class="page" id="page-dashboard">
+      <div class="dashboard-container">
+        <div class="dashboard-header">
+          <h2>AI Data Studio</h2>
+          <div class="status" id="dashStatus">📁 No file loaded</div>
         </div>
 
-        <!-- Step 2: Upload -->
-        <div class="rcard">
-          <div class="rcard-title"><i class="fas fa-upload"></i> Step 2 — Upload Resumes</div>
-          <div class="resume-dropzone" id="resumeDropZone">
+        <!-- Upload area -->
+        <div id="uploadArea" class="upload-card">
+          <div class="upload-zone" id="uploadZone">
             <i class="fas fa-cloud-upload-alt"></i>
-            <h4>Drop resume files here</h4>
-            <p>PDF, DOCX, DOC, TXT — up to 20 files, 10MB each</p>
-            <label class="btn-primary small upload-lbl" for="resumeFiles">Select Files</label>
-            <input type="file" id="resumeFiles" accept=".pdf,.docx,.doc,.txt" multiple hidden/>
+            <h3>Drag & drop your CSV or Excel file</h3>
+            <p>or <label for="fileInput" class="file-label">browse files</label></p>
+            <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" hidden>
           </div>
-          <div class="resume-file-list" id="resumeFileList"></div>
-          <button class="btn-primary large w100 coral-btn" id="screenBtn" style="margin-top:1rem"><i class="fas fa-magic"></i> Analyze &amp; Score All Resumes</button>
+          <div id="uploadReady" class="file-ready hidden">
+            <div class="file-info"><i class="fas fa-file-csv"></i> <span id="fileName"></span> <span id="fileMeta"></span></div>
+            <button id="analyzeBtn" class="btn primary">Generate AI Charts & Insights <i class="fas fa-magic"></i></button>
+          </div>
         </div>
-      </div>
 
-      <!-- RIGHT: Results -->
-      <div class="resume-results" id="resumeResults">
-        <div class="rresults-empty" id="rresultsEmpty">
-          <i class="fas fa-users"></i>
-          <h3>Ranked results will appear here</h3>
-          <p>Set your required skills, upload resumes, and click Analyze.</p>
+        <!-- Charts & Chat combined (like DeepSeek) -->
+        <div id="chartsSection" class="charts-section hidden">
+          <div class="charts-toolbar">
+            <span id="chartCount"></span>
+            <select id="chartFilter"><option value="all">All charts</option><option value="bar">Bar</option><option value="scatter">Scatter</option><option value="line">Line</option><option value="pie">Pie</option></select>
+            <button class="btn small" onclick="regenerateCharts()"><i class="fas fa-redo"></i> Regenerate</button>
+          </div>
+          <div id="chartsGrid" class="charts-grid"></div>
+          <div class="code-toggle" onclick="toggleCode()">📄 View generated code <i class="fas fa-chevron-down"></i></div>
+          <pre id="codeBlock" class="code-pre hidden"><code id="codeContent"></code></pre>
         </div>
-        <div class="rresults-loaded hidden" id="rresultsLoaded">
-          <!-- Summary Stats -->
-          <div class="resume-summary-cards">
-            <div class="resume-summary-card">
-              <div class="rsc-icon"><i class="fas fa-users"></i></div>
-              <div class="rsc-content">
-                <span class="rsc-value" id="totalResumes">0</span>
-                <span class="rsc-label">Total Resumes</span>
-              </div>
-            </div>
-            <div class="resume-summary-card">
-              <div class="rsc-icon high"><i class="fas fa-check-circle"></i></div>
-              <div class="rsc-content">
-                <span class="rsc-value" id="highScoreCount">0</span>
-                <span class="rsc-label">High Score (≥7)</span>
-              </div>
-            </div>
-            <div class="resume-summary-card">
-              <div class="rsc-icon mid"><i class="fas fa-chart-line"></i></div>
-              <div class="rsc-content">
-                <span class="rsc-value" id="midScoreCount">0</span>
-                <span class="rsc-label">Mid Score (4-7)</span>
-              </div>
-            </div>
-            <div class="resume-summary-card">
-              <div class="rsc-icon avg"><i class="fas fa-percent"></i></div>
-              <div class="rsc-content">
-                <span class="rsc-value" id="avgScore">0.0</span>
-                <span class="rsc-label">Avg Score</span>
-              </div>
-            </div>
-          </div>
 
-          <div class="rresults-header">
-            <div class="rresults-summary" id="rresultsSummary"></div>
-            <div class="rresults-controls">
-              <select class="dash-select" id="rFilter">
-                <option value="all">All Candidates</option>
-                <option value="high">Score ≥ 7</option>
-                <option value="mid">Score 4–7</option>
-                <option value="low">Score &lt; 4</option>
-              </select>
-              <button class="btn-outline small" onclick="exportResumeCSV()"><i class="fas fa-download"></i> Export CSV</button>
-              <button class="btn-outline small" onclick="exportResumePDF()"><i class="fas fa-file-pdf"></i> Export Report</button>
-            </div>
+        <!-- AI Chat + Insights (tabs below charts) -->
+        <div class="analysis-tabs">
+          <button class="tab active" data-tab="chat">💬 AI Chat</button>
+          <button class="tab" data-tab="insights">📊 Insights</button>
+        </div>
+        <div id="chatPanel" class="chat-panel active">
+          <div class="chat-messages" id="chatMessages">
+            <div class="message bot">👋 Hello! Upload a dataset and ask me anything about it.</div>
           </div>
-          <div class="rresults-list" id="rresultsList"></div>
+          <div class="chat-input-area">
+            <input type="text" id="chatInput" placeholder="Ask a question about your data...">
+            <button id="sendChatBtn"><i class="fas fa-paper-plane"></i></button>
+          </div>
+          <div class="suggestions" id="suggestions"></div>
+        </div>
+        <div id="insightsPanel" class="insights-panel hidden">
+          <button id="genInsightsBtn" class="btn primary">✨ Generate Insights</button>
+          <div id="insightContent" class="insight-content"></div>
         </div>
       </div>
     </div>
-  </div>
-</div>
 
-
-<!-- ═══════════════════════════════════════════════════
-     PAGE: SERVICES
-════════════════════════════════════════════════════ -->
-<div class="page" id="page-services">
-  <div class="page-hero-wrap">
-    <div class="hero-eyebrow"><span class="eyebrow-dot"></span>What We Offer</div>
-    <h1 class="section-title">Our <span class="gradient-text">Services</span></h1>
-    <p style="color:var(--text-secondary);font-size:1rem;max-width:520px;margin:0 auto">Two AI-powered tools and expert consultancy — everything you need to work smarter with data.</p>
-  </div>
-  <section class="section bg-dark">
-    <div class="services-cards">
-      <div class="svc-card border-blue">
-        <div class="svc-ico blue-ico"><i class="fas fa-chart-line"></i></div>
-        <span class="svc-badge blue-badge">Self-Serve</span>
-        <h2>Data Analysis</h2>
-        <p class="svc-desc">Upload CSV/Excel and let Gemini AI generate instant visualizations, statistical summaries, and natural language insights — no coding required.</p>
-        <ul class="svc-list">
-          <li><i class="fas fa-check"></i> Auto-generated charts (bar, line, pie, scatter, heatmap)</li>
-          <li><i class="fas fa-check"></i> AI chat to ask questions about your data</li>
-          <li><i class="fas fa-check"></i> Column profiling &amp; outlier detection</li>
-          <li><i class="fas fa-check"></i> Export PDF reports &amp; clean CSVs</li>
-          <li><i class="fas fa-check"></i> Supports CSV &amp; Excel formats</li>
-        </ul>
-        <button class="btn-primary w100" onclick="navigateTo('dashboard')"><i class="fas fa-rocket"></i> Start Analyzing</button>
-      </div>
-      <div class="svc-card border-coral">
-        <div class="svc-ico coral-ico"><i class="fas fa-file-alt"></i></div>
-        <span class="svc-badge coral-badge">AI Recruitment</span>
-        <h2>ATS Resume Screener</h2>
-        <p class="svc-desc">Upload multiple resumes and instantly rank candidates by ATS fit score. Perfect for HR teams managing high-volume hiring pipelines.</p>
-        <ul class="svc-list">
-          <li><i class="fas fa-check"></i> Batch upload PDF &amp; DOCX resumes (up to 20)</li>
-          <li><i class="fas fa-check"></i> ATS score out of 10 per candidate</li>
-          <li><i class="fas fa-check"></i> Matched &amp; missing skills breakdown</li>
-          <li><i class="fas fa-check"></i> Ranked sorted list for easy filtering</li>
-          <li><i class="fas fa-check"></i> Export results as CSV or HTML report</li>
-        </ul>
-        <button class="btn-primary coral-btn w100" onclick="navigateTo('resume')"><i class="fas fa-users"></i> Screen Resumes</button>
-      </div>
-      <div class="svc-card border-purple">
-        <div class="svc-ico purple-ico"><i class="fas fa-users"></i></div>
-        <span class="svc-badge purple-badge">Expert-Led</span>
-        <h2>Data Consultancy</h2>
-        <p class="svc-desc">Work 1-on-1 with certified data scientists and BI analysts for custom dashboards, data strategy, and ML model integration.</p>
-        <ul class="svc-list">
-          <li><i class="fas fa-check"></i> 1-on-1 sessions with domain experts</li>
-          <li><i class="fas fa-check"></i> Custom dashboards &amp; reporting pipelines</li>
-          <li><i class="fas fa-check"></i> Data strategy &amp; roadmap planning</li>
-          <li><i class="fas fa-check"></i> Machine learning model integration</li>
-        </ul>
-        <button class="btn-outline w100" onclick="navigateTo('consultancy')"><i class="fas fa-calendar"></i> Meet Our Experts</button>
+    <!-- Resume Screener Page (improved, modal fixed) -->
+    <div class="page" id="page-resume">
+      <div class="resume-container">
+        <div class="resume-header">
+          <h2>ATS Resume Screener</h2>
+          <p>Add skills, upload PDF/DOCX, get ranked scores.</p>
+        </div>
+        <div class="resume-two-columns">
+          <div class="resume-left">
+            <div class="card">
+              <h3><i class="fas fa-list-check"></i> Required skills</h3>
+              <div class="skills-wrapper">
+                <div id="skillsTags" class="skills-tags"></div>
+                <input type="text" id="skillInput" placeholder="Type skill and press Enter">
+              </div>
+              <div class="quick-skills">
+                <button onclick="addPresetSkills(['Python','SQL','Pandas','NumPy'])">Data Sci</button>
+                <button onclick="addPresetSkills(['React','Node','JavaScript'])">Web Dev</button>
+                <button onclick="addPresetSkills(['AWS','Docker','K8s'])">DevOps</button>
+              </div>
+              <label>Job description (optional)</label>
+              <textarea id="jobDesc" rows="4" placeholder="Paste job description → auto‑extract skills"></textarea>
+              <div class="filter-row">
+                <label>Min score:</label>
+                <input type="range" id="minScore" min="0" max="9.5" step="0.5" value="0">
+                <span id="minScoreVal">0.0</span>
+              </div>
+            </div>
+            <div class="card">
+              <h3><i class="fas fa-upload"></i> Upload resumes</h3>
+              <div class="dropzone" id="resumeDropZone">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Drop PDF/DOCX/TXT files here or <label for="resumeFiles" class="file-label">browse</label></p>
+                <input type="file" id="resumeFiles" accept=".pdf,.docx,.doc,.txt" multiple hidden>
+              </div>
+              <div id="resumeFileList" class="file-list"></div>
+              <button id="screenBtn" class="btn primary coral">Analyze & Score <i class="fas fa-magic"></i></button>
+            </div>
+          </div>
+          <div class="resume-right">
+            <div id="resumeResultsEmpty" class="results-empty">
+              <i class="fas fa-users"></i><p>Ranked candidates will appear here</p>
+            </div>
+            <div id="resumeResultsLoaded" class="results-loaded hidden">
+              <div class="summary-cards">
+                <div class="sum-card"><span id="totalResumes">0</span> Total</div>
+                <div class="sum-card"><span id="highCount">0</span> High (≥7)</div>
+                <div class="sum-card"><span id="midCount">0</span> Mid (4‑7)</div>
+                <div class="sum-card"><span id="avgScore">0.0</span> Avg</div>
+              </div>
+              <div class="results-controls">
+                <select id="filterScore"><option value="all">All</option><option value="high">≥7</option><option value="mid">4‑7</option><option value="low"><4</option></select>
+                <button class="btn small" onclick="exportResumeCSV()">Export CSV</button>
+                <button class="btn small" onclick="exportResumePDF()">Export Report</button>
+              </div>
+              <div id="resultsList" class="results-list"></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  </section>
-  <section class="section bg-card">
-    <div class="section-eyebrow">Compare</div>
-    <h2 class="section-title">Which Plan Fits You?</h2>
-    <div class="comp-wrap"><table class="comp-table">
-      <thead><tr><th>Feature</th><th class="hl-blue">Data Analysis</th><th class="hl-coral">Resume Screener</th><th>Consultancy</th></tr></thead>
-      <tbody>
-        <tr><td>AI Processing</td><td class="hl-blue"><i class="fas fa-check yes"></i></td><td class="hl-coral"><i class="fas fa-check yes"></i></td><td><i class="fas fa-check yes"></i></td></tr>
-        <tr><td>Auto Visualizations</td><td class="hl-blue"><i class="fas fa-check yes"></i></td><td class="hl-coral"><i class="fas fa-times no"></i></td><td><i class="fas fa-check yes"></i></td></tr>
-        <tr><td>Resume ATS Scoring</td><td class="hl-blue"><i class="fas fa-times no"></i></td><td class="hl-coral"><i class="fas fa-check yes"></i></td><td><i class="fas fa-check yes"></i></td></tr>
-        <tr><td>PDF Export</td><td class="hl-blue"><i class="fas fa-check yes"></i></td><td class="hl-coral"><i class="fas fa-check yes"></i></td><td><i class="fas fa-check yes"></i></td></tr>
-        <tr><td>Human Expert</td><td class="hl-blue"><i class="fas fa-times no"></i></td><td class="hl-coral"><i class="fas fa-times no"></i></td><td><i class="fas fa-check yes"></i></td></tr>
-        <tr><td>Price</td><td class="hl-blue">Free</td><td class="hl-coral">Free</td><td>Contact Us</td></tr>
-      </tbody>
-    }</div>
-  </section>
-  <footer class="footer"><div class="footer-brand"><div class="brand-mark sm"><i class="fas fa-brain"></i></div><span class="brand-wordmark">Lexa<span class="accent">Ai</span></span></div><p class="footer-copy">© 2026 LexaAi</p></footer>
-</div>
 
-
-<!-- ═══════════════════════════════════════════════════
-     PAGE: CONSULTANCY
-════════════════════════════════════════════════════ -->
-<div class="page" id="page-consultancy">
-  <div class="page-hero-wrap">
-    <div class="hero-eyebrow"><span class="eyebrow-dot"></span>Expert Network</div>
-    <h1 class="section-title">Meet Our <span class="gradient-text">Consultants</span></h1>
-    <p style="color:var(--text-secondary);font-size:1rem;max-width:500px;margin:0 auto">World-class data professionals ready to transform your business with data-driven insights.</p>
-  </div>
-  <section class="section bg-dark">
-    <div class="consultants-grid">
-      <div class="ccard"><div class="ccard-bg" style="--ch:210"></div><div class="ccard-av"><div class="cav" style="--hue:210">AR</div><span class="cav-badge avail">Available</span></div><div class="ccard-body"><h3>Arjun Rao</h3><p class="ctitle">Senior Data Scientist</p><p class="cco"><i class="fas fa-building"></i> Ex-Google, Ex-Flipkart</p><div class="ctags"><span>ML</span><span>Python</span><span>NLP</span></div><p class="cbio">8+ years building ML pipelines at scale. Specializes in e-commerce analytics and recommendation systems.</p><div class="cstats"><div><span class="cv">120+</span><span class="cl">Clients</span></div><div><span class="cv">4.9★</span><span class="cl">Rating</span></div><div><span class="cv">8yr</span><span class="cl">Exp.</span></div></div><button class="btn-connect" onclick="openModal('Arjun Rao','Senior Data Scientist')"><i class="fas fa-calendar-plus"></i> Connect</button></div></div>
-      <div class="ccard"><div class="ccard-bg" style="--ch:320"></div><div class="ccard-av"><div class="cav" style="--hue:320">PM</div><span class="cav-badge avail">Available</span></div><div class="ccard-body"><h3>Priya Mehta</h3><p class="ctitle">Business Intelligence Lead</p><p class="cco"><i class="fas fa-building"></i> Ex-McKinsey, Deloitte</p><div class="ctags"><span>BI</span><span>Tableau</span><span>Power BI</span></div><p class="cbio">Helped 50+ enterprises build BI frameworks. Transforms complex data into clear C-suite narratives.</p><div class="cstats"><div><span class="cv">85+</span><span class="cl">Clients</span></div><div><span class="cv">4.8★</span><span class="cl">Rating</span></div><div><span class="cv">11yr</span><span class="cl">Exp.</span></div></div><button class="btn-connect" onclick="openModal('Priya Mehta','Business Intelligence Lead')"><i class="fas fa-calendar-plus"></i> Connect</button></div></div>
-      <div class="ccard"><div class="ccard-bg" style="--ch:45"></div><div class="ccard-av"><div class="cav" style="--hue:45">RK</div><span class="cav-badge busy">Busy</span></div><div class="ccard-body"><h3>Rahul Khanna</h3><p class="ctitle">Data Engineering Architect</p><p class="cco"><i class="fas fa-building"></i> Ex-Amazon, Swiggy</p><div class="ctags"><span>AWS</span><span>Spark</span><span>Data Lakes</span></div><p class="cbio">Designs large-scale data infrastructure. Expert in real-time streaming and ETL pipelines.</p><div class="cstats"><div><span class="cv">200+</span><span class="cl">Clients</span></div><div><span class="cv">4.95★</span><span class="cl">Rating</span></div><div><span class="cv">12yr</span><span class="cl">Exp.</span></div></div><button class="btn-connect" onclick="openModal('Rahul Khanna','Data Engineering Architect')"><i class="fas fa-calendar-plus"></i> Connect</button></div></div>
-      <div class="ccard"><div class="ccard-bg" style="--ch:140"></div><div class="ccard-av"><div class="cav" style="--hue:140">SJ</div><span class="cav-badge avail">Available</span></div><div class="ccard-body"><h3>Sneha Joshi</h3><p class="ctitle">AI &amp; Forecasting Lead</p><p class="cco"><i class="fas fa-building"></i> Ex-Microsoft Research</p><div class="ctags"><span>Deep Learning</span><span>Forecasting</span><span>R</span></div><p class="cbio">Published researcher on time-series forecasting. Works with retail and fintech sectors.</p><div class="cstats"><div><span class="cv">60+</span><span class="cl">Clients</span></div><div><span class="cv">4.87★</span><span class="cl">Rating</span></div><div><span class="cv">7yr</span><span class="cl">Exp.</span></div></div><button class="btn-connect" onclick="openModal('Sneha Joshi','AI & Predictive Analytics Lead')"><i class="fas fa-calendar-plus"></i> Connect</button></div></div>
-      <div class="ccard"><div class="ccard-bg" style="--ch:270"></div><div class="ccard-av"><div class="cav" style="--hue:270">VN</div><span class="cav-badge avail">Available</span></div><div class="ccard-body"><h3>Vikram Nair</h3><p class="ctitle">Financial Data Analyst</p><p class="cco"><i class="fas fa-building"></i> Ex-Goldman Sachs, Zerodha</p><div class="ctags"><span>Finance</span><span>Risk</span><span>SQL</span></div><p class="cbio">Quantitative finance, risk dashboards, and trading analytics. Clear financial storytelling.</p><div class="cstats"><div><span class="cv">95+</span><span class="cl">Clients</span></div><div><span class="cv">4.91★</span><span class="cl">Rating</span></div><div><span class="cv">9yr</span><span class="cl">Exp.</span></div></div><button class="btn-connect" onclick="openModal('Vikram Nair','Financial Data Analyst')"><i class="fas fa-calendar-plus"></i> Connect</button></div></div>
+    <!-- Services page (restored) -->
+    <div class="page" id="page-services">
+      <div class="services-hero"><h1>Our <span class="gradient">Services</span></h1><p>AI analytics + resume screening + expert consultancy</p></div>
+      <div class="services-grid">
+        <div class="service-card"><i class="fas fa-chart-line"></i><h3>Data Analysis</h3><p>Auto charts, chat with data, PDF reports.</p><button class="btn small" onclick="navigateTo('dashboard')">Try now</button></div>
+        <div class="service-card"><i class="fas fa-file-alt"></i><h3>ATS Resume Screener</h3><p>Batch upload, skill matching, ranked scores.</p><button class="btn small" onclick="navigateTo('resume')">Screen now</button></div>
+        <div class="service-card"><i class="fas fa-users"></i><h3>Expert Consultancy</h3><p>1‑on‑1 with data scientists.</p><button class="btn small" onclick="navigateTo('consultancy')">Meet experts</button></div>
+      </div>
     </div>
-  </section>
-  <footer class="footer"><div class="footer-brand"><div class="brand-mark sm"><i class="fas fa-brain"></i></div><span class="brand-wordmark">Lexa<span class="accent">Ai</span></span></div><p class="footer-copy">© 2026 LexaAi</p></footer>
-</div>
 
+    <!-- Consultancy page (restored) -->
+    <div class="page" id="page-consultancy">
+      <div class="consultancy-hero"><h1>Meet our <span class="gradient">Experts</span></h1><p>World‑class professionals ready to help</p></div>
+      <div class="experts-grid" id="expertsGrid">
+        <!-- dynamically loaded or static -->
+      </div>
+    </div>
+  </main>
 
-<!-- ═══ CONSULTANCY MODAL ═══ -->
-<div class="modal-bg" id="consultModal">
-  <div class="modal-box">
-    <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
-    <div class="modal-head"><div class="modal-ico"><i class="fas fa-calendar-plus"></i></div><div><h3 id="modalName">Book Session</h3><p id="modalRole">Expert</p></div></div>
-    <form class="modal-form" onsubmit="submitModal(event)">
-      <div class="form-row2"><div class="form-grp"><label>Full Name *</label><input type="text" required placeholder="Your name"/></div><div class="form-grp"><label>Email *</label><input type="email" required placeholder="you@company.com"/></div></div>
-      <div class="form-row2"><div class="form-grp"><label>Phone</label><input type="tel" placeholder="+91 98765 43210"/></div><div class="form-grp"><label>Company</label><input type="text" placeholder="Company name"/></div></div>
-      <div class="form-grp"><label>Topic *</label><select required><option value="">Select…</option><option>Data Analysis</option><option>Machine Learning</option><option>Business Intelligence</option><option>Data Engineering</option><option>Financial Analytics</option><option>Other</option></select></div>
-      <div class="form-grp"><label>Preferred Date &amp; Time</label><input type="datetime-local"/></div>
-      <div class="form-grp"><label>Description</label><textarea rows="3" placeholder="Tell us about your project…"></textarea></div>
-      <button type="submit" class="btn-primary large w100"><i class="fas fa-paper-plane"></i> Submit Request</button>
-    </form>
-  </div>
-</div>
-
-<!-- ═══ RESUME DETAIL MODAL ═══ -->
-<div class="modal-bg" id="resumeDetailModal">
-  <div class="modal-box">
-    <button class="modal-close" onclick="closeResumeModal()"><i class="fas fa-times"></i></button>
-    <div class="modal-head"><div class="modal-ico"><i class="fas fa-file-alt"></i></div><div><h3 id="rdName">Resume Details</h3><p id="rdScore">Score: —</p></div></div>
-    <div id="rdContent">
-      <div class="rd-section"><h4 class="rd-h4 match-h4">✅ Matched Skills</h4><div id="rdMatched" class="rd-tags"></div></div>
-      <div class="rd-section"><h4 class="rd-h4 miss-h4">❌ Missing Skills</h4><div id="rdMissing" class="rd-tags"></div></div>
-      <div class="rd-section"><h4 class="rd-h4">📊 Score Breakdown</h4><div id="rdBreakdown"></div></div>
+  <!-- Modals -->
+  <div id="resumeModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeResumeModal()">&times;</span>
+      <h3 id="modalName"></h3>
+      <p id="modalScore"></p>
+      <div class="modal-skills"><strong>✅ Matched</strong><div id="modalMatched"></div></div>
+      <div class="modal-skills"><strong>❌ Missing</strong><div id="modalMissing"></div></div>
+      <div id="modalBreakdown"></div>
     </div>
   </div>
-</div>
 
-<!-- ═══ TOAST ═══ -->
-<div class="toast" id="toast">
-  <div class="toast-inner">
-    <i class="fas fa-check-circle toast-icon success" id="toastIcon"></i>
-    <div><strong id="toastTitle">Done</strong><p id="toastMsg"></p></div>
-    <button onclick="closeToast()"><i class="fas fa-times"></i></button>
+  <div id="consultModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeConsultModal()">&times;</span>
+      <h3>Book a session</h3>
+      <form id="consultForm">
+        <input type="text" placeholder="Name" required><input type="email" placeholder="Email" required>
+        <textarea placeholder="Project details"></textarea>
+        <button type="submit" class="btn primary">Submit</button>
+      </form>
+    </div>
   </div>
-</div>
 
-<!-- ═══ LOADING OVERLAY ═══ -->
-<div class="loader-overlay hidden" id="loadingOverlay">
-  <div class="loader-box">
-    <div class="loader-rings"><div></div><div></div><div></div></div>
-    <p id="loaderText">Processing…</p>
-  </div>
-</div>
+  <div class="toast" id="toast"><div><i class="fas fa-check-circle"></i> <span id="toastMsg"></span></div></div>
+  <div class="loader-overlay hidden" id="loader"><div class="spinner"></div><p id="loaderText">Processing...</p></div>
 
-<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
-<script src="/static/js/app.js"></script>
-<script src="/static/js/resume-analyzer.js"></script>
+  <script src="/static/js/app.js"></script>
+  <script src="/static/js/resume-analyzer.js"></script>
 </body>
 </html>
